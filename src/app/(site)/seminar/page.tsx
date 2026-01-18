@@ -1,0 +1,180 @@
+import { Metadata } from 'next'
+import Link from 'next/link'
+import Image from 'next/image'
+
+import { createClient } from '@/lib/supabase/server'
+
+export const metadata: Metadata = {
+  title: 'セミナー | PartnerProp',
+  description: 'パートナービジネスに関するセミナー、ウェビナー、イベント情報をご案内します。',
+  openGraph: {
+    title: 'セミナー | PartnerProp',
+    description: 'パートナービジネスに関するセミナー、ウェビナー、イベント情報をご案内します。',
+  },
+}
+
+interface SearchParams {
+  page?: string
+}
+
+const ITEMS_PER_PAGE = 12
+
+// セミナー一覧を取得
+async function getSeminarList(page: number) {
+  const supabase = await createClient()
+  const offset = (page - 1) * ITEMS_PER_PAGE
+  
+  const { count } = await supabase
+    .from('posts')
+    .select('*', { count: 'exact', head: true })
+    .eq('type', 'seminar')
+    .eq('is_published', true)
+  
+  const { data, error } = await supabase
+    .from('posts')
+    .select('id, slug, title, thumbnail, published_at, seo_description')
+    .eq('type', 'seminar')
+    .eq('is_published', true)
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .range(offset, offset + ITEMS_PER_PAGE - 1)
+  
+  if (error) {
+    console.error('Error fetching seminars:', error)
+    return { items: [], totalPages: 0 }
+  }
+  
+  const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE)
+  
+  return { items: data || [], totalPages }
+}
+
+function formatDate(dateString: string | null): string {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+export default async function SeminarListPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>
+}) {
+  const params = await searchParams
+  const currentPage = Number(params.page) || 1
+  const { items, totalPages } = await getSeminarList(currentPage)
+  
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* ヘッダー */}
+      <header className="bg-gradient-to-r from-purple-600 to-purple-800 py-16 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl font-bold tracking-tight">セミナー</h1>
+          <p className="mt-4 text-lg text-purple-100">
+            パートナービジネスに関するセミナー、ウェビナー、イベント情報
+          </p>
+        </div>
+      </header>
+      
+      {/* コンテンツ */}
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        {items.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">セミナーはまだありません</p>
+          </div>
+        ) : (
+          <>
+            {/* 記事グリッド */}
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {items.map((item) => (
+                <article
+                  key={item.id}
+                  className="group overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md"
+                >
+                  <Link href={`/seminar/${item.slug}`}>
+                    <div className="relative aspect-video overflow-hidden bg-gray-100">
+                      {item.thumbnail ? (
+                        <Image
+                          src={item.thumbnail}
+                          alt={item.title}
+                          fill
+                          className="object-cover transition group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-purple-50">
+                          <span className="text-4xl text-purple-200">🎤</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-5">
+                      <time className="text-sm text-gray-500">
+                        {formatDate(item.published_at)}
+                      </time>
+                      <h2 className="mt-2 text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-purple-600">
+                        {item.title}
+                      </h2>
+                      {item.seo_description && (
+                        <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+                          {item.seo_description}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                </article>
+              ))}
+            </div>
+            
+            {/* ページネーション */}
+            {totalPages > 1 && (
+              <nav className="mt-12 flex justify-center">
+                <ul className="flex items-center gap-2">
+                  {currentPage > 1 && (
+                    <li>
+                      <Link
+                        href={`/seminar?page=${currentPage - 1}`}
+                        className="flex h-10 items-center rounded-lg border bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        前へ
+                      </Link>
+                    </li>
+                  )}
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <li key={page}>
+                      <Link
+                        href={`/seminar?page=${page}`}
+                        className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium ${
+                          page === currentPage
+                            ? 'bg-purple-600 text-white'
+                            : 'border bg-white text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </Link>
+                    </li>
+                  ))}
+                  
+                  {currentPage < totalPages && (
+                    <li>
+                      <Link
+                        href={`/seminar?page=${currentPage + 1}`}
+                        className="flex h-10 items-center rounded-lg border bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        次へ
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              </nav>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  )
+}
