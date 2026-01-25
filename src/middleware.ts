@@ -2,14 +2,47 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { updateSession } from '@/lib/supabase/middleware'
 
+// Staging basic auth password (set this env var to enable basic auth)
+const STAGING_PASSWORD = process.env.STAGING_PASSWORD
+
 // Protected routes that require authentication
 const protectedRoutes = ['/admin', '/dashboard']
+
+// Protected API routes that require authentication (return 401 instead of redirect)
+const protectedApiRoutes = ['/api/analytics', '/api/ai-writer', '/api/canvas']
 
 // Paths to exclude from redirect checks
 const excludeFromRedirect = ['/admin', '/api', '/auth', '/_next', '/favicon.ico']
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Basic auth for staging environment (when STAGING_PASSWORD is set)
+  if (STAGING_PASSWORD) {
+    const authHeader = request.headers.get('authorization')
+
+    if (!authHeader || !authHeader.startsWith('Basic ')) {
+      return new NextResponse('Authentication required', {
+        status: 401,
+        headers: {
+          'WWW-Authenticate': 'Basic realm="Staging Environment"',
+        },
+      })
+    }
+
+    const base64Credentials = authHeader.split(' ')[1]
+    const credentials = atob(base64Credentials)
+    const [, password] = credentials.split(':')
+
+    if (password !== STAGING_PASSWORD) {
+      return new NextResponse('Invalid credentials', {
+        status: 401,
+        headers: {
+          'WWW-Authenticate': 'Basic realm="Staging Environment"',
+        },
+      })
+    }
+  }
 
   // Skip redirect check for excluded paths and static files
   const shouldCheckRedirect = !excludeFromRedirect.some((path) =>
@@ -31,8 +64,21 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   )
 
+  // Check if the API route is protected
+  const isProtectedApiRoute = protectedApiRoutes.some((route) =>
+    pathname.startsWith(route)
+  )
+
   // Update session and get user
   const { user, supabaseResponse } = await updateSession(request)
+
+  // If accessing protected API route without authentication, return 401
+  if (isProtectedApiRoute && !user) {
+    return NextResponse.json(
+      { error: 'Unauthorized', message: 'Authentication required' },
+      { status: 401 }
+    )
+  }
 
   // If accessing protected route without authentication, redirect to login
   if (isProtectedRoute && !user) {
@@ -65,8 +111,11 @@ async function checkRedirect(
       }
     )
 
-    // Normalize pathname (remove trailing slash except for root)
-    const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '')
+    // Normalize pathname (remove trailing slash except for root, decode URL-encoded characters)
+    // Japanese tags like /lab/tag/パートナービジネス come URL-encoded from browser
+    const normalizedPath = pathname === '/'
+      ? '/'
+      : decodeURIComponent(pathname.replace(/\/$/, ''))
 
     const { data, error } = await supabase
       .from('redirects')
