@@ -24,11 +24,12 @@ export function Header() {
 
   return (
     <header
-      className="fixed inset-x-0 top-0 z-50 flex h-12 items-center justify-between bg-white px-[14px] text-sm text-zinc-800 min-[1200px]:h-20 min-[1200px]:px-10"
+      id="siteHeader"
+      className="is-active fixed inset-x-0 top-0 z-50 flex h-12 items-center justify-between bg-white px-[14px] text-sm text-zinc-800 shadow-[0_4px_8px_rgba(0,0,0,0.08)] min-[1200px]:h-[86px] min-[1200px]:px-10"
       role="banner"
     >
       {/* Logo */}
-      <div className="text-[1.75rem] leading-8">
+      <div className="logo text-[1.75rem] leading-8">
         <Link
           href="/"
           aria-label="PartnerProp ホームへ"
@@ -47,15 +48,15 @@ export function Header() {
 
       {/* Desktop Navigation */}
       <nav
-        className="hidden items-center gap-6 font-bold min-[1200px]:flex"
+        className="nav hidden items-center gap-6 font-bold min-[1200px]:flex"
         aria-label="メインナビゲーション"
       >
-        <div className="flex items-center gap-6">
+        <div className="list flex items-center gap-6">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
-              className="transition-colors hover:text-red-500 active:text-red-600"
+              className="item transition-colors hover:text-red-500 active:text-red-600"
             >
               {item.name}
             </Link>
@@ -63,16 +64,16 @@ export function Header() {
         </div>
 
         {/* Desktop CTAs */}
-        <div className="flex gap-6">
+        <div className="buttonArea flex gap-6">
           <Link
             href="/knowledge/service-form/"
-            className="flex items-center justify-center rounded-full border-2 border-red-500 bg-red-500 px-4 py-3.5 text-white transition-all hover:border-red-600 hover:bg-red-600 active:scale-[0.98] active:bg-red-700"
+            className="buttonDownload flex items-center justify-center gap-2 rounded-full border border-[#f93832] bg-[#f93832] px-4 py-3.5 text-[14px] font-bold leading-none text-white transition-all hover:bg-[#e10700] active:scale-[0.98]"
           >
             資料をダウンロードする
           </Link>
           <Link
             href="/knowledge/demo/"
-            className="flex items-center justify-center rounded-full border-2 border-red-500 bg-white px-4 py-3.5 text-red-500 transition-all hover:bg-red-50 active:scale-[0.98] active:bg-red-100"
+            className="buttonDemo flex items-center justify-center gap-2 rounded-full border border-[#f93832] bg-white px-4 py-3.5 text-[14px] font-bold leading-none text-[#f93832] transition-all hover:bg-[#e10700] hover:text-white active:scale-[0.98]"
           >
             無料デモを申し込む
           </Link>
@@ -109,18 +110,18 @@ export function Header() {
               </nav>
 
               {/* Mobile CTAs */}
-              <div className="flex flex-col gap-4 border-t pt-6">
+              <div className="flex flex-col gap-2 border-t border-[#d6d3d0] px-6 py-6">
                 <Link
                   href="/knowledge/service-form/"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center rounded-full border-2 border-red-500 bg-red-500 px-4 py-3.5 font-bold text-white transition-all hover:border-red-600 hover:bg-red-600 active:scale-[0.98] active:bg-red-700"
+                  className="buttonDownload flex items-center justify-center gap-2 rounded-full border border-[#f93832] bg-[#f93832] px-4 py-3.5 text-[16px] font-bold text-white transition-all hover:bg-[#e10700] active:scale-[0.98]"
                 >
                   資料をダウンロードする
                 </Link>
                 <Link
                   href="/knowledge/demo/"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center justify-center rounded-full border-2 border-red-500 bg-white px-4 py-3.5 font-bold text-red-500 transition-all hover:bg-red-50 active:scale-[0.98] active:bg-red-100"
+                  className="buttonDemo flex items-center justify-center gap-2 rounded-full border border-[#f93832] bg-white px-4 py-3.5 text-[16px] font-bold text-[#f93832] transition-all hover:bg-[#e10700] hover:text-white active:scale-[0.98]"
                 >
                   無料デモを申し込む
                 </Link>

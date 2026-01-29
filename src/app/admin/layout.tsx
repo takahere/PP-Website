@@ -2,8 +2,12 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
+
+// Admin専用スタイル（Legacyリセット + Tiptapエディタ + サイドバー）
+import '@/styles/admin.css'
 import { AdminSidebar } from './admin-sidebar'
 import { LogoutButton } from './logout-button'
+import { UserRole } from '@/lib/types/user'
 
 export const metadata: Metadata = {
   title: {
@@ -28,9 +32,18 @@ export default async function AdminLayout({
     redirect('/login')
   }
 
+  // Get user profile with role
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const userRole: UserRole = (profile?.role as UserRole) || 'regular'
+
   return (
-    <div className="flex h-screen overflow-hidden">
-      <AdminSidebar userEmail={user.email || ''}>
+    <div className="admin-layout flex h-screen overflow-hidden">
+      <AdminSidebar userEmail={user.email || ''} userRole={userRole}>
         <LogoutButton />
       </AdminSidebar>
       <main className="flex-1 overflow-auto">

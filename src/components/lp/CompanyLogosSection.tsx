@@ -2,6 +2,8 @@
 
 import Image from 'next/image'
 
+const WP_CDN_URL = process.env.NEXT_PUBLIC_WP_CDN_URL || 'https://partner-prop.com'
+
 const logos = [
   { name: 'みずほ銀行', src: '/img/img_banner16.png' },
   { name: 'エン・ジャパン', src: '/img/img_banner02.png' },
@@ -28,7 +30,7 @@ const logos2 = [
 
 export function CompanyLogosSection() {
   return (
-    <section className="py-10 overflow-hidden bg-white" aria-label="導入企業実績">
+    <section className="react-section py-10 overflow-hidden bg-white" aria-label="導入企業実績">
       <h2 className="sr-only">導入企業</h2>
       
       <div className="relative">
@@ -40,7 +42,7 @@ export function CompanyLogosSection() {
               className="flex-shrink-0 w-32 sm:w-40 h-12 sm:h-16 flex items-center justify-center grayscale hover:grayscale-0 transition-all"
             >
               <Image
-                src={`https://partner-prop.com${logo.src}`}
+                src={`${WP_CDN_URL}${logo.src}`}
                 alt={logo.name}
                 width={160}
                 height={80}
@@ -58,7 +60,7 @@ export function CompanyLogosSection() {
               className="flex-shrink-0 w-32 sm:w-40 h-12 sm:h-16 flex items-center justify-center grayscale hover:grayscale-0 transition-all"
             >
               <Image
-                src={`https://partner-prop.com${logo.src}`}
+                src={`${WP_CDN_URL}${logo.src}`}
                 alt={logo.name}
                 width={160}
                 height={80}
@@ -71,6 +73,13 @@ export function CompanyLogosSection() {
     </section>
   )
 }
+
+
+
+
+
+
+
 
 
 

@@ -1,9 +1,11 @@
 import Image from 'next/image'
 import Link from 'next/link'
 
+const WP_CDN_URL = process.env.NEXT_PUBLIC_WP_CDN_URL || 'https://partner-prop.com'
+
 export function PartnerMarketingSection() {
   return (
-    <section className="py-16 sm:py-20 lg:py-32 bg-white">
+    <section className="partner-marketing-area contentWrap react-section py-16 sm:py-20 lg:py-32 bg-white">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* タイトル */}
         <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-center mb-12 sm:mb-16">
@@ -29,7 +31,7 @@ export function PartnerMarketingSection() {
           <div className="rounded-2xl overflow-hidden bg-gray-900 aspect-video">
             <div className="relative w-full h-full bg-black/50 flex items-center justify-center">
               <div className="text-center text-white">
-                <p className="text-lg font-bold mb-2">2か月で1,500商談を作った"freeeの成功の秘訣"</p>
+                <p className="text-lg font-bold mb-2">2か月で1,500商談を作った&quot;freeeの成功の秘訣&quot;</p>
                 <p className="text-base">「パートナーマーケティング」</p>
               </div>
             </div>
@@ -52,19 +54,19 @@ export function PartnerMarketingSection() {
                 従来のアプローチ
               </div>
               <ComparisonCard
-                imageSrc="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_assignment01.png"
+                imageSrc={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_assignment01.png`}
                 text="契約情報・企業情報が分散してしまう"
               />
               <ComparisonCard
-                imageSrc="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_assignment02.png"
+                imageSrc={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_assignment02.png`}
                 text="勉強会など一方通行な育成"
               />
               <ComparisonCard
-                imageSrc="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_assignment04.png"
+                imageSrc={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_assignment04.png`}
                 text="パートナーの稼働状況が分からない"
               />
               <ComparisonCard
-                imageSrc="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_assignment03.png"
+                imageSrc={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_assignment03.png`}
                 text="契約しても紹介や商談が実施されない"
               />
 
@@ -73,22 +75,22 @@ export function PartnerMarketingSection() {
                 パートナーマーケ
               </div>
               <ComparisonCard
-                imageSrc="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_assignment05.png"
+                imageSrc={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_assignment05.png`}
                 text="契約情報を一元化"
                 highlight
               />
               <ComparisonCard
-                imageSrc="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_assignment06.png"
+                imageSrc={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_assignment06.png`}
                 text="Eラーニングで履歴管理"
                 highlight
               />
               <ComparisonCard
-                imageSrc="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_assignment07.png"
+                imageSrc={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_assignment07.png`}
                 text="個人単位で案件管理・進捗を可視化"
                 highlight
               />
               <ComparisonCard
-                imageSrc="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_assignment08.png"
+                imageSrc={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_assignment08.png`}
                 text="売りたくなる仕組とフォロー体制を整備"
                 highlight
               />
@@ -141,6 +143,13 @@ function ComparisonCard({
     </div>
   )
 }
+
+
+
+
+
+
+
 
 
 

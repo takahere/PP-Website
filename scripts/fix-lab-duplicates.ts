@@ -32,6 +32,16 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+interface LabArticle {
+  id: string
+  slug: string
+  title: string
+  categories: string[] | null
+  is_published: boolean
+  published_at: string | null
+  original_url: string | null
+}
+
 async function fixDuplicates() {
   console.log('🔧 Lab記事の重複修正開始...\n')
 
@@ -49,7 +59,7 @@ async function fixDuplicates() {
   console.log(`📊 総記事数: ${articles?.length || 0}\n`)
 
   // 同じタイトルの記事をグループ化
-  const titleMap = new Map<string, any[]>()
+  const titleMap = new Map<string, LabArticle[]>()
   articles?.forEach(article => {
     const title = article.title.trim()
     if (!titleMap.has(title)) {
@@ -153,6 +163,13 @@ fixDuplicates()
     console.error('❌ エラーが発生しました:', err)
     process.exit(1)
   })
+
+
+
+
+
+
+
 
 
 

@@ -2,14 +2,16 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
+const WP_CDN_URL = process.env.NEXT_PUBLIC_WP_CDN_URL || 'https://partner-prop.com'
+
 export function IntroSection() {
   return (
-    <section className="py-16 sm:py-20 lg:py-32 bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+    <section id="introArea" className="contentWrap react-section py-16 sm:py-20 lg:py-32 bg-gradient-to-br from-[#F93832] to-[#D91D17] text-white">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* タイトル画像 */}
         <h2 className="text-center mb-12 sm:mb-16 lg:mb-20">
           <Image
-            src="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/introarea-title.svg"
+            src={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/introarea-title.svg`}
             alt="パートナーマーケティングの新時代"
             width={1200}
             height={100}
@@ -53,7 +55,7 @@ export function IntroSection() {
           {/* 画像 */}
           <div>
             <Image
-              src="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/img_intro.png"
+              src={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/img_intro.png`}
               alt="PRM（パートナー連携ポータル）の活用で、企業間を超えるデータを集約し、パートナービジネスを科学せよ。"
               width={714}
               height={460}
@@ -65,6 +67,13 @@ export function IntroSection() {
     </section>
   )
 }
+
+
+
+
+
+
+
 
 
 

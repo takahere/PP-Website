@@ -34,6 +34,32 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+interface LabArticle {
+  id: string
+  slug: string
+  title: string
+  categories: string[] | null
+  tags: string[] | null
+  is_published: boolean
+  original_url: string | null
+}
+
+interface ArticleSummary {
+  slug: string
+  is_published: boolean
+}
+
+interface DuplicateIssue {
+  type: string
+  slug?: string
+  title?: string
+  categories?: string[]
+  tags?: string[]
+  duplicates?: string[]
+  articles?: ArticleSummary[]
+  count?: number
+}
+
 async function checkDuplicates() {
   console.log('🔍 Lab記事の重複チェック開始...\n')
 
@@ -50,7 +76,7 @@ async function checkDuplicates() {
 
   console.log(`📊 総記事数: ${articles?.length || 0}\n`)
 
-  const issues: any[] = []
+  const issues: DuplicateIssue[] = []
 
   // 1. カテゴリ配列内の重複をチェック
   const articlesWithDuplicateCategories = articles?.filter(article => {
@@ -110,7 +136,7 @@ async function checkDuplicates() {
   }
 
   // 3. 同じタイトルの記事をチェック
-  const titleMap = new Map<string, any[]>()
+  const titleMap = new Map<string, LabArticle[]>()
   articles?.forEach(article => {
     const title = article.title.trim()
     if (!titleMap.has(title)) {

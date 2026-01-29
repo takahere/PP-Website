@@ -1,0 +1,12 @@
+{
+  "name": "content-plugin",
+  "description": "コンテンツ管理プラグイン。Lab記事・ニュース・ページの作成・編集・公開・SEOチェックをサポート",
+  "version": "1.0.0",
+  "author": {
+    "name": "PartnerProp"
+  },
+  "commands": "../commands",
+  "agents": [],
+  "skills": "../skills",
+  "hooks": "../hooks/hooks.json"
+}

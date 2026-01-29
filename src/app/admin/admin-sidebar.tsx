@@ -18,7 +18,10 @@ import {
   Table2,
   ChevronLeft,
   ChevronRight,
+  Users,
 } from 'lucide-react'
+
+import { UserRole } from '@/lib/types/user'
 
 import { cn } from '@/lib/utils'
 
@@ -27,6 +30,7 @@ interface NavItem {
   href: string
   icon: React.ComponentType<{ className?: string }>
   children?: { name: string; href: string; icon: React.ComponentType<{ className?: string }> }[]
+  adminOnly?: boolean
 }
 
 const navigation: NavItem[] = [
@@ -46,19 +50,27 @@ const navigation: NavItem[] = [
   },
   { name: '一覧ページ', href: '/admin/list-pages', icon: List },
   { name: 'リダイレクト', href: '/admin/redirects', icon: ExternalLink },
+  { name: 'ユーザー管理', href: '/admin/users', icon: Users },
 ]
 
 interface AdminSidebarProps {
   userEmail: string
+  userRole?: UserRole
   children: React.ReactNode
 }
 
-export function AdminSidebar({ userEmail, children }: AdminSidebarProps) {
+export function AdminSidebar({ userEmail, userRole = 'regular', children }: AdminSidebarProps) {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
+  // Filter navigation based on user role
+  const visibleNavigation = navigation.filter(item => {
+    if (item.adminOnly && userRole !== 'admin') return false
+    return true
+  })
+
   return (
-    <aside 
+    <aside
       className={cn(
         "border-r bg-gray-50 flex flex-col transition-all duration-300 shrink-0 h-screen overflow-y-auto",
         isCollapsed ? "w-16" : "w-64"
@@ -73,7 +85,7 @@ export function AdminSidebar({ userEmail, children }: AdminSidebarProps) {
               alt="PartnerProp"
               width={180}
               height={40}
-              className="h-8 w-auto"
+              className="admin-logo"
               priority
             />
             <p className="text-xs text-gray-500 mt-1">管理画面</p>
@@ -98,7 +110,7 @@ export function AdminSidebar({ userEmail, children }: AdminSidebarProps) {
       {/* ナビゲーション */}
       <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-1">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const isActive = pathname === item.href || 
               (item.href !== '/admin/lab' && pathname.startsWith(item.href))
             const isLabSection = item.href === '/admin/lab'
@@ -109,14 +121,14 @@ export function AdminSidebar({ userEmail, children }: AdminSidebarProps) {
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                    'sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                     isLabSection
                       ? isLabActive
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-gray-900 active'
+                        : 'hover:bg-gray-100'
                       : isActive
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+                        ? 'bg-gray-900 active'
+                        : 'hover:bg-gray-100',
                     isCollapsed && 'justify-center'
                   )}
                   title={isCollapsed ? item.name : undefined}
@@ -147,10 +159,10 @@ export function AdminSidebar({ userEmail, children }: AdminSidebarProps) {
                           <Link
                             href={child.href}
                             className={cn(
-                              'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                              'sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                               isChildActive
-                                ? 'bg-gray-200 text-gray-900'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                ? 'bg-gray-200 active'
+                                : 'hover:bg-gray-100'
                             )}
                           >
                             <child.icon className="h-4 w-4" />

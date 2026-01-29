@@ -10,7 +10,7 @@ import { addHeadingIds, extractHeadings } from '@/lib/heading-utils'
 import { ContentHtmlWithForms } from '@/components/ContentHtmlRenderer'
 
 interface Props {
-  params: Promise<{ category: string; id: string }>
+  params: Promise<{ category: string; slug?: string[] }>
 }
 
 // コンテンツタイプごとのスタイル定義
@@ -66,41 +66,74 @@ function getContentTypeStyles(contentType: ContentType) {
   return CONTENT_TYPE_STYLES.default
 }
 
-// カテゴリとIDからスラッグを生成
-function buildSlug(category: string, id: string): string {
-  return `${category}_${id}`
+// URLパラメータからスラッグを生成
+// /lab/agency/107 → slug: ['107'] → 'agency_107'
+// /lab/agency/agency-recruit/349 → slug: ['agency-recruit', '349'] → 'agency_agency-recruit_349'
+function buildSlugFromParams(category: string, slug?: string[]): string {
+  if (!slug || slug.length === 0) {
+    // カテゴリのみの場合はnullを返す（記事なし）
+    return ''
+  }
+  if (slug.length === 1) {
+    // 2階層URL: /lab/category/id
+    return `${category}_${slug[0]}`
+  }
+  // 3階層URL: /lab/category/subcategory/id
+  return `${category}_${slug.join('_')}`
 }
 
 // PartnerLab記事データを取得
-async function getLabArticle(category: string, id: string) {
+async function getLabArticle(category: string, slugParts?: string[]) {
+  const slug = buildSlugFromParams(category, slugParts)
+  if (!slug) {
+    return null
+  }
+
   const supabase = await createClient()
-  const slug = buildSlug(category, id)
-  
+
   const { data, error } = await supabase
     .from('lab_articles')
     .select('*')
     .eq('slug', slug)
     .eq('is_published', true)
     .single()
-  
+
   if (error || !data) {
     return null
   }
-  
+
   return data
+}
+
+// 正規URLを構築
+function buildCanonicalUrl(category: string, slugParts?: string[]): string {
+  if (!slugParts || slugParts.length === 0) {
+    return `/lab/${category}`
+  }
+  return `/lab/${category}/${slugParts.join('/')}`
 }
 
 // SEOメタデータを生成
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { category, id } = await params
-  const article = await getLabArticle(category, id)
-  
+  const { category, slug } = await params
+
+  // スラッグがない場合はカテゴリページ（このルートでは処理しない）
+  if (!slug || slug.length === 0) {
+    return {
+      title: `${category} | PartnerLab`,
+    }
+  }
+
+  const article = await getLabArticle(category, slug)
+
   if (!article) {
     return {
       title: '記事が見つかりません | PartnerLab',
     }
   }
-  
+
+  const canonicalUrl = buildCanonicalUrl(category, slug)
+
   // 未公開記事はnoindex
   const robotsConfig = article.is_published === false
     ? { index: false, follow: false }
@@ -110,7 +143,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${article.title} | PartnerLab`,
     description: article.seo_description || article.og_description || '',
     alternates: {
-      canonical: `/lab/${category}/${id}`,
+      canonical: canonicalUrl,
     },
     robots: robotsConfig,
     openGraph: {
@@ -132,7 +165,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // 日付をフォーマット
 function formatDate(dateString: string | null): string {
   if (!dateString) return ''
-  
+
   const date = new Date(dateString)
   return date.toLocaleDateString('ja-JP', {
     year: 'numeric',
@@ -141,10 +174,16 @@ function formatDate(dateString: string | null): string {
   })
 }
 
-export default async function LabArticleByCategoryPage({ params }: Props) {
-  const { category, id } = await params
-  const article = await getLabArticle(category, id)
-  
+export default async function LabArticlePage({ params }: Props) {
+  const { category, slug } = await params
+
+  // スラッグがない場合は404（カテゴリ一覧は別ルートで処理）
+  if (!slug || slug.length === 0) {
+    notFound()
+  }
+
+  const article = await getLabArticle(category, slug)
+
   if (!article) {
     notFound()
   }
@@ -152,20 +191,19 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
   // カテゴリとタグを配列として取得
   const categories = article.categories || []
   const tags = article.tags || []
-  
+
   // コンテンツタイプに応じたスタイルを取得
   const contentType = article.content_type as ContentType
   const styles = getContentTypeStyles(contentType)
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://partner-prop.com'
-  // 旧形式のURL（category/id）を使用
-  const pageUrl = `${baseUrl}/lab/${category}/${id}`
-  
+  const pageUrl = `${baseUrl}${buildCanonicalUrl(category, slug)}`
+
   // HTMLにheading IDを付与（目次のリンク用）
   const contentWithIds = addHeadingIds(article.content_html || '')
   // 目次用の見出しを抽出
   const tocItems = extractHeadings(contentWithIds)
-  
+
   return (
     <>
       <ArticleJsonLd
@@ -195,8 +233,8 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
             {contentType && (
               <>
                 <span className="mx-2">/</span>
-                <Link 
-                  href={`/lab/content_type/${contentType}`} 
+                <Link
+                  href={`/lab/content_type/${contentType}`}
                   className="hover:text-gray-700"
                 >
                   {styles.name}
@@ -206,14 +244,14 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
             <span className="mx-2">/</span>
             <span className="text-gray-900">{article.title}</span>
           </nav>
-          
+
           {/* コンテンツタイプ・カテゴリバッジ */}
           <div className="mb-4 flex flex-wrap gap-2">
             <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${styles.badge}`}>
               {styles.name}
             </span>
             {categories.map((cat: string) => (
-              <span 
+              <span
                 key={cat}
                 className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700"
               >
@@ -221,15 +259,15 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
               </span>
             ))}
           </div>
-          
+
           {/* タイトル */}
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
             {article.title}
           </h1>
-          
+
           {/* 公開日 */}
           {article.published_at && (
-            <time 
+            <time
               dateTime={article.published_at}
               className="mt-4 block text-sm text-gray-500"
             >
@@ -238,7 +276,7 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
           )}
         </div>
       </header>
-      
+
       {/* アイキャッチ画像 */}
       {article.thumbnail && (
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -254,12 +292,12 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
           </div>
         </div>
       )}
-      
+
       {/* 本文 */}
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         {/* 目次 */}
         <TableOfContents items={tocItems} className="mb-10" />
-        
+
         <ContentHtmlWithForms
           html={contentWithIds}
           className={`prose prose-lg prose-gray max-w-none
@@ -272,7 +310,7 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
             prose-blockquote:bg-gray-50 prose-blockquote:py-1
             ${styles.prose}`}
         />
-        
+
         {/* タグ */}
         {tags.length > 0 && (
           <div className="mt-12 border-t border-gray-200 pt-8">
@@ -291,7 +329,7 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
           </div>
         )}
       </div>
-      
+
       {/* CTA - コンテンツタイプに応じた色 */}
       <div className={`${styles.ctaBg} py-12`}>
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
@@ -317,25 +355,25 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
           </div>
         </div>
       </div>
-      
+
       {/* フッター */}
       <footer className="border-t border-gray-200 bg-gray-50 py-8">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <Link 
+          <Link
             href="/lab"
             className={`inline-flex items-center text-sm font-medium ${styles.accent} hover:opacity-80`}
           >
-            <svg 
-              className="mr-2 h-4 w-4" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="mr-2 h-4 w-4"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M10 19l-7-7m0 0l7-7m-7 7h18" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
             PartnerLab一覧に戻る
@@ -346,4 +384,3 @@ export default async function LabArticleByCategoryPage({ params }: Props) {
     </>
   )
 }
-

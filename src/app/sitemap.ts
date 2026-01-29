@@ -4,13 +4,24 @@ import { createClient } from '@/lib/supabase/server'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://partner-prop.com'
 
-// スラッグ (category_id) から旧形式URL (/lab/category/id) を生成
+// 静的ページの最終更新日（サイト公開日またはメジャー更新日を設定）
+const STATIC_PAGES_LAST_MODIFIED = new Date('2025-01-21T00:00:00.000Z')
+
+// スラッグから4階層URL (/lab/category/subcategory/id) を生成
+// slug形式: category_subcategory_id（例: agency_alliance_107）
+// 2パートの場合は3階層URL (/lab/category/id) を維持
 function buildLabArticleUrl(slug: string): string {
-  const lastUnderscoreIndex = slug.lastIndexOf('_')
-  if (lastUnderscoreIndex !== -1) {
-    const category = slug.substring(0, lastUnderscoreIndex)
-    const id = slug.substring(lastUnderscoreIndex + 1)
-    return `/lab/${category}/${id}`
+  const parts = slug.split('_')
+  if (parts.length >= 3) {
+    // 3パート以上: 4階層URL
+    // category = 最初のパート, id = 最後のパート, subcategory = 中間パート
+    const category = parts[0]
+    const id = parts[parts.length - 1]
+    const subcategory = parts.slice(1, -1).join('_')
+    return `/lab/${category}/${subcategory}/${id}`
+  } else if (parts.length === 2) {
+    // 2パート: 3階層URL（category/id）を維持
+    return `/lab/${parts[0]}/${parts[1]}`
   }
   return `/lab/${slug}`
 }
@@ -22,49 +33,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: BASE_URL,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: 'daily',
       priority: 1,
     },
     {
       url: `${BASE_URL}/about`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/lab`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
       url: `${BASE_URL}/news`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/seminar`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/casestudy`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/knowledge`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${BASE_URL}/member`,
-      lastModified: new Date(),
+      lastModified: STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: 'monthly',
       priority: 0.7,
     },
@@ -142,7 +153,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const labCategoryEntries: MetadataRoute.Sitemap = (labCategories || []).map((category) => ({
     url: `${BASE_URL}/lab/category/${category.slug}`,
-    lastModified: new Date(),
+    lastModified: STATIC_PAGES_LAST_MODIFIED,
     changeFrequency: 'weekly' as const,
     priority: 0.5,
   }))

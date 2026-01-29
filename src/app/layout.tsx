@@ -4,10 +4,10 @@ import Script from 'next/script'
 import './globals.css'
 
 // Google Tag Manager Container ID
-const GTM_ID = 'GTM-PCPRZXTW'
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || ''
 
 // HubSpot Portal ID
-const HUBSPOT_PORTAL_ID = '23718418'
+const HUBSPOT_PORTAL_ID = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID || ''
 
 const notoSansJP = Noto_Sans_JP({
   variable: '--font-noto-sans-jp',

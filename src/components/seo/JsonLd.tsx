@@ -1,3 +1,5 @@
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://partner-prop.com'
+
 interface ArticleJsonLdProps {
   title: string
   description?: string
@@ -28,15 +30,15 @@ export function ArticleJsonLd({
     author: {
       '@type': 'Organization',
       name: authorName,
-      url: 'https://partner-prop.com',
+      url: BASE_URL,
     },
     publisher: {
       '@type': 'Organization',
       name: 'PartnerProp',
-      url: 'https://partner-prop.com',
+      url: BASE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: 'https://partner-prop.com/logo.png',
+        url: `${BASE_URL}/logo.png`,
       },
     },
     mainEntityOfPage: {
@@ -62,8 +64,8 @@ interface OrganizationJsonLdProps {
 
 export function OrganizationJsonLd({
   name = 'PartnerProp',
-  url = 'https://partner-prop.com',
-  logo = 'https://partner-prop.com/logo.png',
+  url = BASE_URL,
+  logo = `${BASE_URL}/logo.png`,
   description = 'パートナービジネスを科学し仕組みにするPRMツール',
 }: OrganizationJsonLdProps) {
   const jsonLd = {
@@ -162,7 +164,7 @@ export function PersonJsonLd({
   url,
   worksFor = {
     name: 'PartnerProp',
-    url: 'https://partner-prop.com',
+    url: BASE_URL,
   },
 }: PersonJsonLdProps) {
   const jsonLd = {
@@ -217,11 +219,11 @@ export function EventJsonLd({
   url,
   location = {
     type: 'VirtualLocation',
-    url: 'https://partner-prop.com',
+    url: BASE_URL,
   },
   organizer = {
     name: 'PartnerProp',
-    url: 'https://partner-prop.com',
+    url: BASE_URL,
   },
   eventStatus = 'EventScheduled',
   eventAttendanceMode = 'OnlineEventAttendanceMode',
@@ -261,6 +263,13 @@ export function EventJsonLd({
     />
   )
 }
+
+
+
+
+
+
+
 
 
 

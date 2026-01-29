@@ -1,15 +1,23 @@
 import { Metadata } from 'next'
-import Link from 'next/link'
-import Image from 'next/image'
 
 import { createClient } from '@/lib/supabase/server'
+import { SeminarCard } from '@/components/seminar'
+import {
+  extractSeminarMetadata,
+  isUpcomingSeminar,
+} from '@/lib/seminar-utils'
 
 export const metadata: Metadata = {
-  title: 'セミナー | PartnerProp',
-  description: 'パートナービジネスに関するセミナー、ウェビナー、イベント情報をご案内します。',
+  title: 'セミナー＆イベント | PartnerProp',
+  description:
+    'パートナービジネスに関するセミナー、ウェビナー、イベント情報をご案内します。',
+  alternates: {
+    canonical: '/seminar',
+  },
   openGraph: {
-    title: 'セミナー | PartnerProp',
-    description: 'パートナービジネスに関するセミナー、ウェビナー、イベント情報をご案内します。',
+    title: 'セミナー＆イベント | PartnerProp',
+    description:
+      'パートナービジネスに関するセミナー、ウェビナー、イベント情報をご案内します。',
   },
 }
 
@@ -17,45 +25,52 @@ interface SearchParams {
   page?: string
 }
 
-const ITEMS_PER_PAGE = 12
+const ITEMS_PER_PAGE = 30 // 全件表示に近い値
 
-// セミナー一覧を取得
-async function getSeminarList(page: number) {
+// セミナー一覧を取得（content_html も取得してメタデータ抽出に使用）
+async function getSeminarList() {
   const supabase = await createClient()
-  const offset = (page - 1) * ITEMS_PER_PAGE
-  
-  const { count } = await supabase
-    .from('posts')
-    .select('*', { count: 'exact', head: true })
-    .eq('type', 'seminar')
-    .eq('is_published', true)
-  
+
   const { data, error } = await supabase
     .from('posts')
-    .select('id, slug, title, thumbnail, published_at, seo_description')
+    .select('id, slug, title, thumbnail, content_html, published_at, seo_description')
     .eq('type', 'seminar')
     .eq('is_published', true)
     .order('published_at', { ascending: false, nullsFirst: false })
-    .range(offset, offset + ITEMS_PER_PAGE - 1)
-  
+    .limit(100)
+
   if (error) {
     console.error('Error fetching seminars:', error)
-    return { items: [], totalPages: 0 }
+    return []
   }
-  
-  const totalPages = Math.ceil((count || 0) / ITEMS_PER_PAGE)
-  
-  return { items: data || [], totalPages }
+
+  return data || []
 }
 
-function formatDate(dateString: string | null): string {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+// セミナーを開催予定/過去に分離
+function separateSeminars(seminars: Awaited<ReturnType<typeof getSeminarList>>) {
+  const upcoming: typeof seminars = []
+  const past: typeof seminars = []
+
+  for (const seminar of seminars) {
+    const metadata = extractSeminarMetadata(seminar.content_html || '')
+    if (isUpcomingSeminar(metadata)) {
+      upcoming.push(seminar)
+    } else {
+      past.push(seminar)
+    }
+  }
+
+  // 開催予定は日付が近い順（昇順）
+  upcoming.sort((a, b) => {
+    const metaA = extractSeminarMetadata(a.content_html || '')
+    const metaB = extractSeminarMetadata(b.content_html || '')
+    const dateA = metaA.eventDate?.getTime() || 0
+    const dateB = metaB.eventDate?.getTime() || 0
+    return dateA - dateB
   })
+
+  return { upcoming, past }
 }
 
 export default async function SeminarListPage({
@@ -63,114 +78,77 @@ export default async function SeminarListPage({
 }: {
   searchParams: Promise<SearchParams>
 }) {
-  const params = await searchParams
-  const currentPage = Number(params.page) || 1
-  const { items, totalPages } = await getSeminarList(currentPage)
-  
+  const seminars = await getSeminarList()
+  const { upcoming, past } = separateSeminars(seminars)
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-gradient-to-r from-purple-600 to-purple-800 py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold tracking-tight">セミナー</h1>
-          <p className="mt-4 text-lg text-purple-100">
-            パートナービジネスに関するセミナー、ウェビナー、イベント情報
-          </p>
-        </div>
+    <div className="min-h-screen bg-white">
+      {/* ヘッダー分のスペーサー */}
+      <div className="h-12 min-[1200px]:h-[86px]" />
+
+      {/* ページヘッダー */}
+      <header className="py-12 text-center">
+        <p className="text-sm font-medium tracking-widest text-gray-500">
+          Seminar&Event
+        </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900">
+          セミナー＆イベント情報
+        </h1>
       </header>
-      
+
       {/* コンテンツ */}
-      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        {items.length === 0 ? (
-          <div className="text-center py-12">
+      <main className="mx-auto max-w-[1200px] px-4 pb-16">
+        {seminars.length === 0 ? (
+          <div className="py-12 text-center">
             <p className="text-gray-500">セミナーはまだありません</p>
           </div>
         ) : (
           <>
-            {/* 記事グリッド */}
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
-                <article
-                  key={item.id}
-                  className="group overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md"
-                >
-                  <Link href={`/seminar/${item.slug}`}>
-                    <div className="relative aspect-video overflow-hidden bg-gray-100">
-                      {item.thumbnail ? (
-                        <Image
-                          src={item.thumbnail}
-                          alt={item.title}
-                          fill
-                          className="object-cover transition group-hover:scale-105"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center bg-purple-50">
-                          <span className="text-4xl text-purple-200">🎤</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="p-5">
-                      <time className="text-sm text-gray-500">
-                        {formatDate(item.published_at)}
-                      </time>
-                      <h2 className="mt-2 text-lg font-semibold text-gray-900 line-clamp-2 group-hover:text-purple-600">
-                        {item.title}
-                      </h2>
-                      {item.seo_description && (
-                        <p className="mt-2 text-sm text-gray-600 line-clamp-2">
-                          {item.seo_description}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                </article>
-              ))}
-            </div>
-            
-            {/* ページネーション */}
-            {totalPages > 1 && (
-              <nav className="mt-12 flex justify-center">
-                <ul className="flex items-center gap-2">
-                  {currentPage > 1 && (
-                    <li>
-                      <Link
-                        href={`/seminar?page=${currentPage - 1}`}
-                        className="flex h-10 items-center rounded-lg border bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                      >
-                        前へ
-                      </Link>
-                    </li>
-                  )}
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <li key={page}>
-                      <Link
-                        href={`/seminar?page=${page}`}
-                        className={`flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium ${
-                          page === currentPage
-                            ? 'bg-purple-600 text-white'
-                            : 'border bg-white text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        {page}
-                      </Link>
-                    </li>
+            {/* 開催間近のセミナー */}
+            {upcoming.length > 0 && (
+              <section className="mb-16" aria-labelledby="upcoming-title">
+                <div className="mb-8 text-center">
+                  <p className="text-sm font-medium tracking-widest text-gray-500">
+                    Upcoming Seminars
+                  </p>
+                  <h2
+                    id="upcoming-title"
+                    className="mt-1 text-2xl font-bold text-gray-900"
+                  >
+                    開催間近のセミナー
+                  </h2>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {upcoming.map((item) => (
+                    <SeminarCard key={item.id} item={item} isPast={false} />
                   ))}
-                  
-                  {currentPage < totalPages && (
-                    <li>
-                      <Link
-                        href={`/seminar?page=${currentPage + 1}`}
-                        className="flex h-10 items-center rounded-lg border bg-white px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                      >
-                        次へ
-                      </Link>
-                    </li>
-                  )}
-                </ul>
-              </nav>
+                </div>
+              </section>
+            )}
+
+            {/* 過去開催したセミナー */}
+            {past.length > 0 && (
+              <section aria-labelledby="past-title">
+                <div className="mb-8 text-center">
+                  <p className="text-sm font-medium tracking-widest text-gray-500">
+                    Past Seminars
+                  </p>
+                  <h2
+                    id="past-title"
+                    className="mt-1 text-2xl font-bold text-gray-900"
+                  >
+                    過去開催したセミナー
+                  </h2>
+                  <p className="mt-2 text-sm text-gray-500">
+                    ※募集は行っていません
+                  </p>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {past.map((item) => (
+                    <SeminarCard key={item.id} item={item} isPast={true} />
+                  ))}
+                </div>
+              </section>
             )}
           </>
         )}

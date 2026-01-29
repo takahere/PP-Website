@@ -1,0 +1,29 @@
+{
+  "description": "アナリティクス分析のためのフック設定",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "(GA4|GSC|アナリティクス|トラフィック|コンバージョン|PV|ページビュー|検索パフォーマンス|アクセス解析|レポート.*分析|分析.*レポート)",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "アナリティクス関連の質問を検出しました。このリクエストに対応するために、以下を確認してください:\n1. Next.jsサーバーが起動しているか（http://localhost:3000）\n2. 必要なデータソースはどれか\n\nリクエスト内容: $USER_PROMPT",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Analytics API call detected'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

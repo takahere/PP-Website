@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { BetaAnalyticsDataClient } from '@google-analytics/data'
 import { getGoogleCredentials, isGoogleConfigured } from '@/lib/google-auth'
 
-let cachedData: { data: any; timestamp: number } | null = null
+let cachedData: { data: unknown; timestamp: number } | null = null
 const CACHE_DURATION = 10 * 60 * 1000
 
 export async function GET(request: Request) {
@@ -84,6 +84,13 @@ function generateDemoData() {
     },
   }
 }
+
+
+
+
+
+
+
 
 
 

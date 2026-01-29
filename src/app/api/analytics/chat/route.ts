@@ -9,7 +9,7 @@ const openai = createOpenAI({
 async function fetchAllAnalyticsData() {
   // サーバー側なので内部URLを使用
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.PORT ? `http://localhost:${process.env.PORT}` : 'http://localhost:3001')
-  const data: any = {}
+  const data: Record<string, unknown> = {}
 
   const endpoints = [
     'ga', 'gsc', 'lab-metrics', 'events', 'lab-attribution', 'lab-conversion-paths',
@@ -44,86 +44,91 @@ async function fetchAllAnalyticsData() {
   return data
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnalyticsData = Record<string, any>
+
 // データを要約してコンテキストサイズを削減
-function summarizeData(endpoint: string, rawData: any): any {
+function summarizeData(endpoint: string, rawData: unknown): Record<string, unknown> | { status: string } {
   if (!rawData) return { status: 'データなし' }
+
+  const data = rawData as AnalyticsData
 
   // 各エンドポイントの重要な情報のみを抽出
   switch (endpoint) {
     case 'ga':
       return {
-        summary: rawData.summary,
-        topPages: rawData.pages?.slice(0, 5) || rawData.topPages?.slice(0, 5),
-        channels: rawData.channels?.slice(0, 5),
-        devices: rawData.devices,
+        summary: data.summary,
+        topPages: data.pages?.slice(0, 5) || data.topPages?.slice(0, 5),
+        channels: data.channels?.slice(0, 5),
+        devices: data.devices,
       }
     
     case 'gsc':
       return {
-        summary: rawData.summary,
-        topQueries: rawData.queries?.slice(0, 5) || rawData.topQueries?.slice(0, 5),
-        topPages: rawData.pages?.slice(0, 5) || rawData.topPages?.slice(0, 5),
+        summary: data.summary,
+        topQueries: data.queries?.slice(0, 5) || data.topQueries?.slice(0, 5),
+        topPages: data.pages?.slice(0, 5) || data.topPages?.slice(0, 5),
       }
     
     case 'lab-metrics':
       return {
-        currentMonth: rawData.currentMonth,
-        summary: rawData.summary,
-        trend: rawData.previousMonths?.slice(0, 3),
+        currentMonth: data.currentMonth,
+        summary: data.summary,
+        trend: data.previousMonths?.slice(0, 3),
       }
     
     case 'site-search':
       return {
-        overview: rawData.overview,
-        topSearchTerms: rawData.topSearchTerms?.slice(0, 5),
-        zeroResultSearches: rawData.zeroResultSearches?.slice(0, 3),
-        insights: rawData.insights,
+        overview: data.overview,
+        topSearchTerms: data.topSearchTerms?.slice(0, 5),
+        zeroResultSearches: data.zeroResultSearches?.slice(0, 3),
+        insights: data.insights,
       }
     
     case 'landing-pages':
       return {
-        overview: rawData.overview,
-        topLandingPages: rawData.topLandingPages?.slice(0, 5),
-        insights: rawData.insights,
+        overview: data.overview,
+        topLandingPages: data.topLandingPages?.slice(0, 5),
+        insights: data.insights,
       }
     
     case 'exit-pages':
       return {
-        overview: rawData.overview,
-        topExitPages: rawData.topExitPages?.slice(0, 5),
-        insights: rawData.insights,
+        overview: data.overview,
+        topExitPages: data.topExitPages?.slice(0, 5),
+        insights: data.insights,
       }
     
     case 'campaigns':
       return {
-        overview: rawData.overview,
-        campaigns: rawData.campaigns?.slice(0, 5),
-        insights: rawData.insights,
+        overview: data.overview,
+        campaigns: data.campaigns?.slice(0, 5),
+        insights: data.insights,
       }
     
     case 'benchmarks':
       return {
-        yourSite: rawData.yourSite,
-        industryAverage: rawData.industryAverage,
-        comparison: rawData.comparison,
-        ranking: rawData.ranking,
-        insights: rawData.insights,
+        yourSite: data.yourSite,
+        industryAverage: data.industryAverage,
+        comparison: data.comparison,
+        ranking: data.ranking,
+        insights: data.insights,
       }
     
     case 'realtime':
       return {
-        activeUsers: rawData.activeUsers,
-        activeUsersLastMinute: rawData.activeUsersLastMinute,
-        topPages: rawData.topPages?.slice(0, 3),
-        topDevices: rawData.topDevices,
+        activeUsers: data.activeUsers,
+        activeUsersLastMinute: data.activeUsersLastMinute,
+        topPages: data.topPages?.slice(0, 3),
+        topDevices: data.topDevices,
       }
     
     // その他のエンドポイントは overview と insights のみ
     default:
       return {
-        overview: rawData.overview,
-        insights: rawData.insights,
-        summary: rawData.summary,
+        overview: data.overview,
+        insights: data.insights,
+        summary: data.summary,
       }
   }
 }

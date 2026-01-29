@@ -223,7 +223,7 @@ async function handleGenerateHypothesis(args: {
   const request = userRequest.toLowerCase()
 
   // Simple pattern matching for hypothesis generation
-  let hypothesis = {
+  const hypothesis = {
     originalRequest: userRequest,
     interpretedIntent: '',
     relevantDataSources: [] as string[],

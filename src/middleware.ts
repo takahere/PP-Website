@@ -2,7 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { updateSession } from '@/lib/supabase/middleware'
 
-// Staging basic auth password (set this env var to enable basic auth)
+// Staging basic auth credentials (set these env vars to enable basic auth)
+const STAGING_USER = process.env.STAGING_USER || 'admin'
 const STAGING_PASSWORD = process.env.STAGING_PASSWORD
 
 // Protected routes that require authentication
@@ -32,9 +33,9 @@ export async function middleware(request: NextRequest) {
 
     const base64Credentials = authHeader.split(' ')[1]
     const credentials = atob(base64Credentials)
-    const [, password] = credentials.split(':')
+    const [username, password] = credentials.split(':')
 
-    if (password !== STAGING_PASSWORD) {
+    if (username !== STAGING_USER || password !== STAGING_PASSWORD) {
       return new NextResponse('Invalid credentials', {
         status: 401,
         headers: {

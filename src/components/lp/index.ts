@@ -7,7 +7,6 @@ export { PartnerMarketingSection } from './PartnerMarketingSection'
 export { CTASection } from './CTASection'
 export { Benefits } from './Benefits'
 export { ContactForm } from './ContactForm'
-export { CTASection as CTASectionOld } from './CTASection'
 export { FeaturesGrid, type FeatureItem } from './FeaturesGrid'
 export { SectionRenderer } from './SectionRenderer'
 

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { ExternalLink, Twitter, ArrowLeft } from 'lucide-react'
+import DOMPurify from 'isomorphic-dompurify'
 
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
@@ -193,7 +194,7 @@ export default async function MemberDetailPage({ params }: Props) {
               <h2 className="mb-4 text-lg font-semibold text-gray-900">プロフィール</h2>
               <div
                 className="prose prose-gray max-w-none text-gray-600"
-                dangerouslySetInnerHTML={{ __html: member.bio }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(member.bio) }}
               />
             </div>
           )}

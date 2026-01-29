@@ -2,9 +2,11 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
+const WP_CDN_URL = process.env.NEXT_PUBLIC_WP_CDN_URL || 'https://partner-prop.com'
+
 export function ResultsSection() {
   return (
-    <section className="py-16 sm:py-20 bg-white">
+    <section id="resultsArea" className="contentWrap react-section py-16 sm:py-20 bg-white">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-3 gap-8 items-center">
           {/* コピー */}
@@ -23,7 +25,7 @@ export function ResultsSection() {
             <p className="text-sm font-semibold text-gray-600 mb-4">商談数</p>
             <div className="mb-6">
               <Image
-                src="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/top_results_600.svg"
+                src={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/top_results_600.svg`}
                 alt="600%"
                 width={200}
                 height={80}
@@ -40,7 +42,7 @@ export function ResultsSection() {
             <p className="text-sm font-semibold text-gray-600 mb-4">生産性</p>
             <div className="mb-6">
               <Image
-                src="https://partner-prop.com/wp-content/themes/partnerprop/assets/img/top_results_200.svg"
+                src={`${WP_CDN_URL}/wp-content/themes/partnerprop/assets/img/top_results_200.svg`}
                 alt="200%"
                 width={200}
                 height={80}
@@ -69,6 +71,13 @@ export function ResultsSection() {
     </section>
   )
 }
+
+
+
+
+
+
+
 
 
 

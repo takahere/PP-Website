@@ -1,0 +1,13 @@
+{
+  "name": "analytics-plugin",
+  "description": "GA4/GSCデータ分析プラグイン。トラフィック、コンバージョン、検索パフォーマンスの分析をサポート",
+  "version": "1.0.0",
+  "author": {
+    "name": "PartnerProp"
+  },
+  "commands": "../commands",
+  "agents": [],
+  "skills": "../skills",
+  "hooks": "../hooks/hooks.json",
+  "mcpServers": "../.mcp.json"
+}

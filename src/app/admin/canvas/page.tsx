@@ -226,7 +226,7 @@ const VIEW_MODE_OPTIONS: { value: ViewMode; label: string; icon: React.ReactNode
 ]
 
 export default function CanvasPage() {
-  const [zoom, setZoom] = useState(50)
+  const [zoom, setZoom] = useState(100)
   const [baseUrl, setBaseUrl] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('desktop')
   const [selectedCategory, setSelectedCategory] = useState<PageCategory>('list') // デフォルトを「一覧」に変更

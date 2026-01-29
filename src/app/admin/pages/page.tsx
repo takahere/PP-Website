@@ -2,14 +2,24 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Button } from '@/components/ui/button'
 import { PageList } from '@/components/admin/PageList'
 
 // ページ一覧を取得
 async function getPages() {
+  // 認証確認
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const { data, error } = await supabase
+  if (!user) {
+    return []
+  }
+
+  // 管理画面なので未公開ページも含めてすべて取得
+  const adminClient = createAdminClient()
+
+  const { data, error } = await adminClient
     .from('pages')
     .select('id, slug, title, type, is_published, published_at, updated_at')
     .order('updated_at', { ascending: false, nullsFirst: false })

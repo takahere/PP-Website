@@ -45,6 +45,7 @@ import {
   FileDown,
   MessageSquare,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -202,7 +203,7 @@ function MetricCard({
   title: string
   value: string | number
   trend?: number
-  icon: any
+  icon: LucideIcon
   color?: "indigo" | "emerald" | "amber" | "rose" | "purple" | "blue" | "cyan"
   subtitle?: string
 }) {

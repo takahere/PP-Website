@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-let cachedData: { data: any; timestamp: number } | null = null
+let cachedData: { data: unknown; timestamp: number } | null = null
 const CACHE_DURATION = 10 * 60 * 1000
 
 export async function GET() {
@@ -63,6 +63,13 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch cohort data', demo: true })
   }
 }
+
+
+
+
+
+
+
 
 
 

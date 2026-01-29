@@ -144,12 +144,12 @@ export async function GET() {
         labPaths: [...new Set(labEvents.map(e => e.pagePath))].slice(0, 10),
       },
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ GA4デバッグエラー:', error)
     return NextResponse.json(
       {
         error: 'GA4データの取得に失敗しました',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     )

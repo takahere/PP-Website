@@ -1,0 +1,35 @@
+{
+  "hooks": [
+    {
+      "event": "on_conversation_start",
+      "action": {
+        "type": "message",
+        "content": "コンテンツ管理プラグインが有効です。利用可能なコマンド:\n- `/create-article` - 新規記事作成\n- `/edit-article` - 記事編集\n- `/publish-article` - 記事公開\n- `/seo-check` - SEO監査"
+      },
+      "conditions": {
+        "keywords": ["記事", "コンテンツ", "Lab", "ニュース", "ブログ"]
+      }
+    },
+    {
+      "event": "before_command",
+      "action": {
+        "type": "check",
+        "check": "server_health",
+        "endpoint": "http://localhost:3000/api/health"
+      },
+      "conditions": {
+        "commands": ["create-article", "edit-article", "publish-article", "seo-check"]
+      }
+    },
+    {
+      "event": "after_edit",
+      "action": {
+        "type": "suggest",
+        "content": "記事を編集しました。SEOチェックを実行しますか？ `/seo-check {slug}`"
+      },
+      "conditions": {
+        "tables": ["lab_articles", "posts"]
+      }
+    }
+  ]
+}

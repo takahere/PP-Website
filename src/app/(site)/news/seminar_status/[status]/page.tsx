@@ -187,3 +187,10 @@ export default async function SeminarStatusPage({ params, searchParams }: Props)
 
 
 
+
+
+
+
+
+
+

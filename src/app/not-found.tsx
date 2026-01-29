@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: 'お探しのページは見つかりませんでした。URLが変更されたか、削除された可能性があります。',
   robots: {
     index: false,
-    follow: true,
+    follow: false,
   },
 }
 
@@ -68,6 +68,13 @@ export default function NotFound() {
     </div>
   )
 }
+
+
+
+
+
+
+
 
 
 

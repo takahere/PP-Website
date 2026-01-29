@@ -1,0 +1,387 @@
+/* ========================================
+ * Site (公開ページ) 専用スタイル
+ * Admin には適用されない
+ * ======================================== */
+
+/* Member Page Styles */
+.member-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 2rem 0;
+}
+
+.member-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.member-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+.member-card .member-image {
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.member-card .member-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-card .member-info {
+  padding: 1.5rem;
+}
+
+.member-card .position {
+  font-size: 0.875rem;
+  color: var(--pp-coral);
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.member-card .name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.member-card .name-en {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.member-card .company {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 0.75rem;
+}
+
+.member-card .bio,
+.member-card .member-bio {
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.member-card .member-card__bio {
+  display: contents;
+}
+
+/* Logo Scroll Animations */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 40s linear infinite;
+}
+
+.animate-scroll-reverse {
+  animation: scroll-reverse 40s linear infinite;
+}
+
+/* ========================================
+ * WordPress Company Logo Slider Fix
+ * 企業ロゴセクションの横スクロール対応
+ * ======================================== */
+article#companyLogo {
+  overflow: hidden !important;
+  padding: 40px 0 !important;
+}
+
+article#companyLogo .slider {
+  overflow: hidden !important;
+}
+
+article#companyLogo ul.track {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 2rem !important;
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  animation: scroll 30s linear infinite !important;
+}
+
+article#companyLogo li.item {
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+article#companyLogo li.item img {
+  height: 40px !important;
+  width: auto !important;
+  object-fit: contain !important;
+}
+
+@media (min-width: 769px) {
+  article#companyLogo li.item img {
+    height: 50px !important;
+  }
+}
+
+/* ========================================
+ * Critical Overrides for Legacy WordPress
+ * ======================================== */
+
+/* fadeContent はcommon.cssでスコープ化済み - ここでは上書き不要 */
+
+/* ITreview raderImage - constrain size when floating without parent */
+.raderImage {
+  width: 160px !important;
+  max-width: 160px !important;
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+.raderImage img,
+.raderImage picture,
+.raderImage picture img {
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+@media screen and (max-width: 769px) {
+  .raderImage {
+    width: 120px !important;
+    max-width: 120px !important;
+  }
+}
+
+/* ========================================
+ * React Component Font-Size Reset
+ * React コンポーネントは 16px ベースを維持
+ * Legacy HTML は 8px/10px ベースを使用
+ * ======================================== */
+.react-section {
+  font-size: 16px !important;
+}
+
+/* React section 内の Tailwind text サイズを 16px ベースで計算 */
+.react-section .text-xs { font-size: 12px !important; }
+.react-section .text-sm { font-size: 14px !important; }
+.react-section .text-base { font-size: 16px !important; }
+.react-section .text-lg { font-size: 18px !important; }
+.react-section .text-xl { font-size: 20px !important; }
+.react-section .text-2xl { font-size: 24px !important; }
+.react-section .text-3xl { font-size: 30px !important; }
+.react-section .text-4xl { font-size: 36px !important; }
+.react-section .text-5xl { font-size: 48px !important; }
+
+/* ========================================
+ * HeroSection Responsive Layout Fix
+ * Override for md: classes not working
+ * ======================================== */
+@media (min-width: 768px) {
+  /* Desktop layout: side by side */
+  .hero-wrapper {
+    flex-direction: row !important;
+    padding-top: 120px !important;
+    padding-bottom: 115px !important;
+  }
+
+  .hero-content {
+    order: 1 !important;
+    width: 50% !important;
+    flex-shrink: 0 !important;
+  }
+
+  .hero-content h1 {
+    width: 660px !important;
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .hero-content .hero-subtitle {
+    text-align: left !important;
+    margin-bottom: 64px !important;
+  }
+
+  .hero-content .hero-buttons {
+    flex-direction: row !important;
+    gap: 16px !important;
+  }
+
+  .hero-content .hero-buttons > div {
+    width: 220px !important;
+  }
+
+  .hero-image {
+    order: 2 !important;
+    position: absolute !important;
+    right: -5% !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 55% !important;
+  }
+}
+
+/* ========================================
+ * Legacy Section Fixes (from layout.tsx legacyCSSFixes)
+ * ======================================== */
+
+/* #introArea - Black gradient background (matching old site) */
+#introArea .content:before {
+  background: linear-gradient(105.32deg, #333333 10.97%, #000000 88.83%) !important;
+  border-radius: 0px 0px 350px 350px !important;
+}
+
+@media screen and (max-width: 769px) {
+  #introArea .content:before {
+    border-radius: 0px 0px 60px 60px !important;
+  }
+}
+
+/* #structureArea - White background with rounded corners */
+#structureArea .content:before {
+  border-radius: 0px 0px 350px 350px !important;
+}
+
+@media screen and (max-width: 769px) {
+  #structureArea .content:before {
+    border-radius: 0px 0px 60px 60px !important;
+  }
+}
+
+/* #companyLogo - Logo slider animation duration */
+#companyLogo .track {
+  animation-duration: 30s !important;
+}
+
+/* #evaluationArea - Constrain image sizes */
+#evaluationArea .wrap .row .cont .image {
+  width: 100px !important;
+  max-width: 100px !important;
+  margin: 0 auto !important;
+}
+
+#evaluationArea .wrap .row .cont .image img {
+  width: 100% !important;
+  height: auto !important;
+}
+
+#evaluationArea .block .list .item .icon {
+  width: 48px !important;
+  max-width: 48px !important;
+  margin: 0 auto !important;
+}
+
+#evaluationArea .block .list .item .icon img {
+  width: 100% !important;
+  height: auto !important;
+}
+
+@media screen and (min-width: 769px) {
+  #evaluationArea .wrap .row .cont .image {
+    width: 200px !important;
+    max-width: 200px !important;
+  }
+}
+
+/* #securityArea - Constrain image sizes */
+#securityArea .block .list .item .icon {
+  width: 48px !important;
+  max-width: 48px !important;
+  margin: 0 auto !important;
+}
+
+#securityArea .block .list .item .icon img {
+  width: 100% !important;
+  height: auto !important;
+}
+
+#securityArea .logo ul li img {
+  height: 50px !important;
+  width: auto !important;
+  max-height: 50px !important;
+}
+
+@media screen and (min-width: 769px) {
+  #securityArea .logo ul li img {
+    height: 80px !important;
+    max-height: 80px !important;
+  }
+}
+
+/* ========================================
+ * Scroll Animations (Intersection Observer triggered)
+ * ======================================== */
+
+/* Scale animation */
+.scale {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.scale.current {
+  animation: scale 0.4s linear forwards;
+}
+
+@keyframes scale {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Line animation (#firstContent用) */
+#firstContent .wrap .image .line {
+  transform: translate(-50px, 80px);
+  transition: transform 0.4s ease-out 0.5s;
+}
+
+#firstContent .wrap .image .line.current {
+  transform: translate(0, 0);
+}
+
+/* Parts animation (段階的表示) */
+.parts {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.parts.current {
+  animation: scale 0.4s linear forwards;
+}
+
+.parts.parts01.current { animation-delay: 1.0s; }
+.parts.parts02.current { animation-delay: 1.1s; }
+.parts.parts03.current { animation-delay: 1.2s; }
+.parts.parts04.current { animation-delay: 1.3s; }
+.parts.parts05.current { animation-delay: 1.4s; }
+.parts.parts06.current { animation-delay: 1.6s; }

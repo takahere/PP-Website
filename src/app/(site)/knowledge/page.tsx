@@ -21,6 +21,7 @@ async function getKnowledgeList() {
     .from('pages')
     .select('id, slug, title, thumbnail, seo_description')
     .eq('type', 'knowledge')
+    .eq('is_published', true)
     .order('created_at', { ascending: false })
   
   if (error) {

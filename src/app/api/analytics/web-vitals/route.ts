@@ -337,3 +337,10 @@ function generateDemoData(): WebVitalsData {
 
 
 
+
+
+
+
+
+
+

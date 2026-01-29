@@ -1,12 +1,27 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
+import DOMPurify from 'dompurify'
 import {
   HubSpotForm,
   extractHubSpotForms,
   replaceHubSpotScripts,
   type HubSpotFormInfo,
 } from './HubSpotForm'
+
+/**
+ * HTMLをサニタイズする
+ * クライアントサイドでのみ実行される
+ * WordPress コンテンツで使用される要素（iframe, lite-youtube等）を許可
+ */
+function sanitizeHtml(html: string): string {
+  if (typeof window === 'undefined') return html
+  return DOMPurify.sanitize(html, {
+    ADD_TAGS: ['iframe', 'lite-youtube'],
+    ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'videoid', 'playlabel'],
+    ALLOW_DATA_ATTR: true,
+  })
+}
 
 interface ContentHtmlRendererProps {
   html: string
@@ -27,17 +42,18 @@ export function ContentHtmlRenderer({
   if (hubspotForms.length === 0) {
     return (
       <div
-        className={className}
-        dangerouslySetInnerHTML={{ __html: html }}
+        className={`legacy-content ${className}`}
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
       />
     )
   }
 
   // HubSpotフォームがある場合は、HTMLを分割してフォームを挿入
   return (
-    <div className={className}>
+    <div className={`legacy-content ${className}`}>
       {/* クリーンなHTMLをレンダリング */}
-      <div dangerouslySetInnerHTML={{ __html: cleanedHtml }} />
+      <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: sanitizeHtml(cleanedHtml) }} />
 
       {/* HubSpotフォームをレンダリング */}
       {hubspotForms.map((form, index) => (
@@ -58,6 +74,7 @@ export function ContentHtmlWithForms({
   html,
   className = '',
 }: ContentHtmlRendererProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
   const hubspotForms = useMemo(() => extractHubSpotForms(html), [html])
   const cleanedHtml = useMemo(() => replaceHubSpotScripts(html), [html])
 
@@ -65,8 +82,9 @@ export function ContentHtmlWithForms({
   if (hubspotForms.length === 0) {
     return (
       <div
-        className={className}
-        dangerouslySetInnerHTML={{ __html: html }}
+        className={`legacy-content ${className}`}
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
       />
     )
   }
@@ -81,14 +99,15 @@ export function ContentHtmlWithForms({
   })
 
   return (
-    <div className={className}>
+    <div ref={containerRef} className={`legacy-content ${className}`}>
       {parts.map((part, index) => {
         // 偶数インデックスはHTML部分
         if (index % 2 === 0) {
           return part ? (
             <div
               key={`html-${index}`}
-              dangerouslySetInnerHTML={{ __html: part }}
+              suppressHydrationWarning
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(part) }}
             />
           ) : null
         }

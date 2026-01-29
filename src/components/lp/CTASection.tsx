@@ -11,7 +11,7 @@ interface CTASectionProps {
 
 export function CTASection(_props: CTASectionProps = {}) {
   return (
-    <section className="py-16 sm:py-20 bg-zinc-800 text-white text-center">
+    <section className="react-section py-16 sm:py-20 bg-zinc-800 text-white text-center">
       <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <p className="text-3xl sm:text-4xl font-black mb-4">
           PartnerPropについて

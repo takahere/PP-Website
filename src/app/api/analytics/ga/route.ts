@@ -89,11 +89,14 @@ export async function GET(request: Request) {
       )
     }
 
-    // キャッシュチェック
+    // パラメータ取得
     const { searchParams } = new URL(request.url)
     const forceRefresh = searchParams.get('refresh') === 'true'
+    const startDate = searchParams.get('startDate') || '30daysAgo'
+    const endDate = searchParams.get('endDate') || 'today'
 
-    const cacheKey = 'ga-analytics-data'
+    // キャッシュキーに期間を含める
+    const cacheKey = `ga-analytics-data-${startDate}-${endDate}`
     if (!forceRefresh) {
       const cachedResult = cache.get(cacheKey)
       if (cachedResult) {
@@ -117,7 +120,7 @@ export async function GET(request: Request) {
       // 過去30日のデータ（エンゲージメント指標追加）
       analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dateRanges: [{ startDate, endDate }],
         dimensions: [{ name: 'date' }],
         metrics: [
           { name: 'activeUsers' },
@@ -133,7 +136,7 @@ export async function GET(request: Request) {
       // チャネル別データ
       analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dateRanges: [{ startDate, endDate }],
         dimensions: [{ name: 'sessionDefaultChannelGroup' }],
         metrics: [
           { name: 'activeUsers' },
@@ -144,7 +147,7 @@ export async function GET(request: Request) {
       // デバイス別データ
       analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dateRanges: [{ startDate, endDate }],
         dimensions: [{ name: 'deviceCategory' }],
         metrics: [
           { name: 'activeUsers' },
@@ -155,14 +158,14 @@ export async function GET(request: Request) {
       // 新規vsリピーター
       analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dateRanges: [{ startDate, endDate }],
         dimensions: [{ name: 'newVsReturning' }],
         metrics: [{ name: 'activeUsers' }],
       }),
       // ページ別エンゲージメント時間ランキング
       analyticsDataClient.runReport({
         property: `properties/${propertyId}`,
-        dateRanges: [{ startDate: '30daysAgo', endDate: 'today' }],
+        dateRanges: [{ startDate, endDate }],
         dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
         metrics: [
           { name: 'screenPageViews' },

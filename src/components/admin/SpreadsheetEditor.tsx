@@ -42,16 +42,23 @@ export function SpreadsheetEditor({
   const [resizeStartWidth, setResizeStartWidth] = useState<number>(0)
 
   // 列が追加されたら初期幅を設定
+  // Note: This is intentional - we need to update widths when columns change dynamically
+  const prevColumnsLengthRef = useRef(columns.length)
   useEffect(() => {
-    setColumnWidths((prev) => {
-      const newWidths = { ...prev }
-      columns.forEach((col) => {
-        if (!(col in newWidths)) {
-          newWidths[col] = 150
-        }
+    // 新しい列が追加された場合のみ実行
+    if (columns.length > prevColumnsLengthRef.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setColumnWidths(prev => {
+        const newWidths = { ...prev }
+        columns.forEach(col => {
+          if (!(col in newWidths)) {
+            newWidths[col] = 150
+          }
+        })
+        return newWidths
       })
-      return newWidths
-    })
+    }
+    prevColumnsLengthRef.current = columns.length
   }, [columns])
 
   // リサイズ開始
