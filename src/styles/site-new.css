@@ -1,0 +1,243 @@
+/* ========================================
+ * Site New - 新トップページ専用スタイル
+ * レガシーCSSを完全に除外し、Tailwindと共存
+ * ======================================== */
+
+/* ========================================
+ * Apple Design System - Shadows
+ * 控えめで洗練された影
+ * ======================================== */
+
+/* Appleスタイルシャドウ用のユーティリティクラス */
+.shadow-apple-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-apple {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-apple-md {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-apple-lg {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.shadow-apple-xl {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* ホバー時のシャドウ */
+.hover\:shadow-apple-md:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.hover\:shadow-apple-lg:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ========================================
+ * Apple風タイポグラフィ最適化
+ * ======================================== */
+.site-new-layout {
+  /* Apple風システムフォントスタック */
+  font-family: var(--font-sans);
+
+  /* 本文: Apple iOS標準 (17px相当) */
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+
+  /* Apple風のフォントスムージング */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* カーニングとリガチャの有効化 */
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* 超大見出し (80px〜): Apple iPhone風 */
+.site-new-layout h1 {
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+  font-weight: 600;
+}
+
+/* 大見出し (48px〜80px): セクションタイトル */
+.site-new-layout h2 {
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+/* 中見出し (24px〜48px): サブセクション */
+.site-new-layout h3 {
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+/* ========================================
+ * Logo Scroll Animations
+ * ======================================== */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-scroll {
+  animation: scroll 40s linear infinite;
+}
+
+.animate-scroll-reverse {
+  animation: scroll-reverse 40s linear infinite;
+}
+
+/* ========================================
+ * Header Styles (from legacy common.css)
+ * ======================================== */
+.site-new-layout header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+}
+
+/* ========================================
+ * Footer Wrapper (レガシースタイル適用用)
+ * ======================================== */
+.site-new-layout .site-layout {
+  /* フッターにのみレガシースタイルを適用 */
+}
+
+/* フッター基本スタイル */
+.site-new-layout .site-footer {
+  display: flex;
+  padding: calc(48 / 375 * 100vw) calc(32 / 375 * 100vw);
+  background: #fff;
+}
+
+@media screen and (min-width: 769px) {
+  .site-new-layout .site-footer {
+    justify-content: center;
+    padding: min(calc(80 / 1440 * 100vw), 80px);
+  }
+}
+
+.site-new-layout .site-footer__content {
+  display: flex;
+  flex-direction: column;
+  gap: calc(48 / 375 * 100vw);
+}
+
+@media screen and (min-width: 769px) {
+  .site-new-layout .site-footer__content {
+    flex-direction: row;
+    gap: min(calc(200 / 1440 * 100vw), 200px);
+    width: 100%;
+    max-width: 1280px;
+  }
+}
+
+.site-new-layout .footer-logo {
+  width: calc(173 / 375 * 100vw);
+}
+
+@media screen and (min-width: 769px) {
+  .site-new-layout .footer-logo {
+    flex-shrink: 0;
+    width: min(calc(173 / 1440 * 100vw), 173px);
+  }
+}
+
+.site-new-layout .footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: calc(40 / 375 * 100vw);
+}
+
+@media screen and (min-width: 769px) {
+  .site-new-layout .footer-nav {
+    flex-direction: row;
+    gap: min(calc(80 / 1440 * 100vw), 80px);
+  }
+}
+
+.site-new-layout .footer-nav__col {
+  display: flex;
+  flex-direction: column;
+  gap: calc(16 / 375 * 100vw);
+}
+
+@media screen and (min-width: 769px) {
+  .site-new-layout .footer-nav__col {
+    gap: min(calc(24 / 1440 * 100vw), 24px);
+  }
+}
+
+.site-new-layout .footer-nav__heading {
+  font-size: calc(14 / 375 * 100vw);
+  font-weight: 700;
+  line-height: 1;
+  color: #333;
+}
+
+@media screen and (min-width: 769px) {
+  .site-new-layout .footer-nav__heading {
+    font-size: min(calc(14 / 1440 * 100vw), 14px);
+  }
+}
+
+.site-new-layout .footer-nav__list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(12 / 375 * 100vw);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+@media screen and (min-width: 769px) {
+  .site-new-layout .footer-nav__list {
+    gap: min(calc(16 / 1440 * 100vw), 16px);
+  }
+}
+
+.site-new-layout .footer-nav__menu {
+  line-height: 1;
+}
+
+.site-new-layout .footer-nav__link {
+  color: #666;
+  font-size: calc(12 / 375 * 100vw);
+  font-weight: 400;
+  text-decoration: none;
+}
+
+@media screen and (min-width: 769px) {
+  .site-new-layout .footer-nav__link {
+    font-size: min(calc(12 / 1440 * 100vw), 12px);
+  }
+}
+
+.site-new-layout .footer-nav__link:hover {
+  opacity: 0.7;
+}

@@ -18,7 +18,28 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-noto-sans-jp), sans-serif;
+  /* Apple風システムフォントスタック（Google Fonts ハイブリッド） */
+  /* 注意: var() の入れ子は展開されないため、フォント名を直接記述 */
+  --font-sans:
+    /* 英文: システムフォント優先 */
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    /* 英文: Google Fonts フォールバック */
+    "Inter",
+    /* 和文: システムフォント優先 (macOS) */
+    "Hiragino Sans",
+    "ヒラギノ角ゴシック",
+    "Hiragino Kaku Gothic ProN",
+    /* 和文: システムフォント優先 (Windows) */
+    "Yu Gothic UI",
+    "Yu Gothic",
+    Meiryo,
+    /* 和文: Google Fonts フォールバック */
+    "Noto Sans JP",
+    /* 汎用フォールバック */
+    sans-serif;
   --font-mono: var(--font-geist-mono);
 
   /* ========================================
@@ -30,7 +51,22 @@
   --color-primary-dark: #D91D17;
   --color-primary-light: #FF746C;
 
-  /* Text Colors */
+  /* ========================================
+   * Apple Design System Colors
+   * ======================================== */
+
+  /* Apple Text Colors */
+  --color-apple-text: #1D1D1F;        /* Shark - 見出し・本文 */
+  --color-apple-text-secondary: #86868B; /* サブテキスト */
+
+  /* Apple Background Colors */
+  --color-apple-bg: #FFFFFF;          /* White - ベース */
+  --color-apple-bg-secondary: #F5F5F7; /* Athens Gray - セクション背景 */
+
+  /* Apple Accent Colors */
+  --color-apple-link: #0066CC;        /* Science Blue - リンク */
+
+  /* Legacy Text Colors (後方互換) */
   --color-text-main: #333333;
   --color-text-sub: #666666;
   --color-text-muted: #99A9B0;
