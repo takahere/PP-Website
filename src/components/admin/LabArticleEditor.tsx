@@ -11,6 +11,7 @@ import {
   Upload,
   ImageIcon,
   X,
+  Sparkles,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { CategorySelect, Category } from './CategorySelect'
 import { TagSelect, Tag } from './TagSelect'
 
@@ -48,6 +50,10 @@ const CONTENT_TYPES = [
 export type ContentType = 'research' | 'interview' | 'knowledge' | null
 import { RichTextEditor } from './RichTextEditor'
 import { AIWriterPanel } from './AIWriterPanel'
+import { ContentQualityCard } from './ContentQualityCard'
+import { PerformancePredictionCard } from './PerformancePredictionCard'
+import { VersionHistoryCard } from './VersionHistoryCard'
+import { SchedulePublishCard } from './SchedulePublishCard'
 
 export interface LabArticleData {
   id?: string
@@ -58,6 +64,7 @@ export interface LabArticleData {
   seo_description?: string | null
   og_description?: string | null
   is_published?: boolean
+  scheduled_at?: string | null
   categories?: string[]
   tags?: string[]
   content_type?: ContentType
@@ -95,6 +102,13 @@ export function LabArticleEditor({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState<LabArticleData>(initialData)
+  const [isSuggestingTags, setIsSuggestingTags] = useState(false)
+  const [suggestionDialogOpen, setSuggestionDialogOpen] = useState(false)
+  const [suggestedCategories, setSuggestedCategories] = useState<string[]>([])
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([])
+  const [selectedSuggestedCategories, setSelectedSuggestedCategories] = useState<string[]>([])
+  const [selectedSuggestedTags, setSelectedSuggestedTags] = useState<string[]>([])
+  const [suggestionReasoning, setSuggestionReasoning] = useState('')
 
   // Hydration mismatch を防ぐ
   useEffect(() => {
@@ -112,6 +126,12 @@ export function LabArticleEditor({
 
   const handleSwitchChange = (checked: boolean) => {
     setFormData((prev) => ({ ...prev, is_published: checked }))
+    setError(null)
+    setSuccess(false)
+  }
+
+  const handleScheduledAtChange = (scheduledAt: string | null) => {
+    setFormData((prev) => ({ ...prev, scheduled_at: scheduledAt }))
     setError(null)
     setSuccess(false)
   }
@@ -141,6 +161,94 @@ export function LabArticleEditor({
     setFormData((prev) => ({ ...prev, content_html: html }))
     setError(null)
     setSuccess(false)
+  }
+
+  // AI タグ・カテゴリ提案
+  const handleSuggestTags = async () => {
+    if (!formData.title) {
+      setError('タイトルを入力してからAI提案を実行してください')
+      return
+    }
+
+    setIsSuggestingTags(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/ai/suggest-tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          content_html: formData.content_html,
+          available_categories: categories.map((c) => c.name),
+          available_tags: tags.map((t) => t.name),
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('API request failed')
+      }
+
+      const data = await response.json()
+
+      // カテゴリ名からIDに変換
+      const categoryIds = (data.suggested_categories || [])
+        .map((name: string) => categories.find((c) => c.name === name)?.id)
+        .filter(Boolean)
+
+      // タグ名からIDに変換
+      const tagIds = (data.suggested_tags || [])
+        .map((name: string) => tags.find((t) => t.name === name)?.id)
+        .filter(Boolean)
+
+      setSuggestedCategories(categoryIds)
+      setSuggestedTags(tagIds)
+      setSelectedSuggestedCategories(categoryIds)
+      setSelectedSuggestedTags(tagIds)
+      setSuggestionReasoning(data.reasoning || '')
+      setSuggestionDialogOpen(true)
+    } catch (err) {
+      setError('AI提案に失敗しました。もう一度お試しください。')
+      console.error('Tag suggestion error:', err)
+    } finally {
+      setIsSuggestingTags(false)
+    }
+  }
+
+  // 提案を適用
+  const handleApplySuggestions = () => {
+    // 既存の選択とマージ
+    const newCategories = Array.from(
+      new Set([...(formData.categories || []), ...selectedSuggestedCategories])
+    )
+    const newTags = Array.from(
+      new Set([...(formData.tags || []), ...selectedSuggestedTags])
+    )
+
+    setFormData((prev) => ({
+      ...prev,
+      categories: newCategories,
+      tags: newTags,
+    }))
+    setSuggestionDialogOpen(false)
+    setSuccess(false)
+  }
+
+  // 提案のチェックボックス切り替え
+  const toggleSuggestedCategory = (categoryId: string) => {
+    setSelectedSuggestedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    )
+  }
+
+  const toggleSuggestedTag = (tagId: string) => {
+    setSelectedSuggestedTags((prev) =>
+      prev.includes(tagId)
+        ? prev.filter((id) => id !== tagId)
+        : [...prev, tagId]
+    )
   }
 
   // AI Writer: コンテンツを挿入
@@ -257,6 +365,26 @@ export function LabArticleEditor({
       setIsDeleting(false)
     }
     setDeleteDialogOpen(false)
+  }
+
+  // バージョン復元
+  const handleRestoreVersion = (data: {
+    title: string
+    content_html?: string
+    thumbnail?: string | null
+    seo_description?: string | null
+    og_description?: string | null
+  }) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: data.title,
+      content_html: data.content_html || prev.content_html,
+      thumbnail: data.thumbnail ?? prev.thumbnail,
+      seo_description: data.seo_description ?? prev.seo_description,
+      og_description: data.og_description ?? prev.og_description,
+    }))
+    setSuccess(false)
+    setError(null)
   }
 
   return (
@@ -463,6 +591,13 @@ export function LabArticleEditor({
             </CardContent>
           </Card>
 
+          {/* 公開予約 */}
+          <SchedulePublishCard
+            scheduledAt={formData.scheduled_at}
+            isPublished={formData.is_published || false}
+            onChange={handleScheduledAtChange}
+          />
+
           {/* コンテンツタイプ */}
           <Card>
             <CardHeader>
@@ -496,47 +631,179 @@ export function LabArticleEditor({
             </CardContent>
           </Card>
 
-          {/* カテゴリー設定 */}
+          {/* カテゴリー・タグ設定 */}
           <Card>
-            <CardHeader>
-              <CardTitle>カテゴリー</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle>カテゴリー・タグ</CardTitle>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSuggestTags}
+                disabled={isSuggestingTags || isPending}
+                className="text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                {isSuggestingTags ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                AIで提案
+              </Button>
             </CardHeader>
-            <CardContent>
-              {categories.length > 0 ? (
-                <CategorySelect
-                  categories={categories}
-                  selectedCategories={formData.categories || []}
-                  onChange={handleCategoriesChange}
-                  disabled={isPending}
-                />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  カテゴリーがありません
-                </p>
-              )}
+            <CardContent className="space-y-4">
+              {/* カテゴリー */}
+              <div className="space-y-2">
+                <Label>カテゴリー</Label>
+                {categories.length > 0 ? (
+                  <CategorySelect
+                    categories={categories}
+                    selectedCategories={formData.categories || []}
+                    onChange={handleCategoriesChange}
+                    disabled={isPending}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    カテゴリーがありません
+                  </p>
+                )}
+              </div>
+
+              {/* タグ */}
+              <div className="space-y-2">
+                <Label>タグ</Label>
+                {tags.length > 0 ? (
+                  <TagSelect
+                    tags={tags}
+                    selectedTags={formData.tags || []}
+                    onChange={handleTagsChange}
+                    disabled={isPending}
+                  />
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    タグがありません
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
-          {/* タグ設定 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>タグ</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {tags.length > 0 ? (
-                <TagSelect
-                  tags={tags}
-                  selectedTags={formData.tags || []}
-                  onChange={handleTagsChange}
-                  disabled={isPending}
-                />
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  タグがありません
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          {/* AI提案ダイアログ */}
+          {isMounted && (
+            <Dialog open={suggestionDialogOpen} onOpenChange={setSuggestionDialogOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-purple-600" />
+                    AIによる提案
+                  </DialogTitle>
+                  <DialogDescription>
+                    記事の内容を分析し、適切なカテゴリーとタグを提案しました。
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-4">
+                  {/* 提案理由 */}
+                  {suggestionReasoning && (
+                    <div className="rounded-lg bg-purple-50 p-3 text-sm text-purple-700">
+                      <p className="font-medium mb-1">提案理由:</p>
+                      <p>{suggestionReasoning}</p>
+                    </div>
+                  )}
+
+                  {/* カテゴリー提案 */}
+                  {suggestedCategories.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>提案カテゴリー</Label>
+                      <div className="space-y-2">
+                        {suggestedCategories.map((categoryId) => {
+                          const category = categories.find((c) => c.id === categoryId)
+                          if (!category) return null
+                          const isAlreadySelected = (formData.categories || []).includes(categoryId)
+                          return (
+                            <div key={categoryId} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`suggest-cat-${categoryId}`}
+                                checked={selectedSuggestedCategories.includes(categoryId)}
+                                onCheckedChange={() => toggleSuggestedCategory(categoryId)}
+                                disabled={isAlreadySelected}
+                              />
+                              <label
+                                htmlFor={`suggest-cat-${categoryId}`}
+                                className={`text-sm ${isAlreadySelected ? 'text-muted-foreground' : ''}`}
+                              >
+                                {category.name}
+                                {isAlreadySelected && ' (選択済み)'}
+                              </label>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* タグ提案 */}
+                  {suggestedTags.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>提案タグ</Label>
+                      <div className="space-y-2">
+                        {suggestedTags.map((tagId) => {
+                          const tag = tags.find((t) => t.id === tagId)
+                          if (!tag) return null
+                          const isAlreadySelected = (formData.tags || []).includes(tagId)
+                          return (
+                            <div key={tagId} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`suggest-tag-${tagId}`}
+                                checked={selectedSuggestedTags.includes(tagId)}
+                                onCheckedChange={() => toggleSuggestedTag(tagId)}
+                                disabled={isAlreadySelected}
+                              />
+                              <label
+                                htmlFor={`suggest-tag-${tagId}`}
+                                className={`text-sm ${isAlreadySelected ? 'text-muted-foreground' : ''}`}
+                              >
+                                {tag.name}
+                                {isAlreadySelected && ' (選択済み)'}
+                              </label>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {suggestedCategories.length === 0 && suggestedTags.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      適切な提案が見つかりませんでした。
+                    </p>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setSuggestionDialogOpen(false)}
+                  >
+                    キャンセル
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleApplySuggestions}
+                    disabled={
+                      selectedSuggestedCategories.length === 0 &&
+                      selectedSuggestedTags.length === 0
+                    }
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    適用する
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
 
           {/* SEO設定 */}
           <Card>
@@ -569,6 +836,30 @@ export function LabArticleEditor({
               </div>
             </CardContent>
           </Card>
+
+          {/* コンテンツ品質スコア */}
+          <ContentQualityCard
+            title={formData.title}
+            content_html={formData.content_html}
+            seo_description={formData.seo_description}
+            og_description={formData.og_description}
+          />
+
+          {/* パフォーマンス予測 */}
+          <PerformancePredictionCard
+            title={formData.title}
+            content_html={formData.content_html}
+            category={formData.categories?.[0]}
+            tags={formData.tags}
+            contentType={formData.content_type}
+          />
+
+          {/* バージョン履歴 */}
+          <VersionHistoryCard
+            contentType="lab_article"
+            contentSlug={formData.slug}
+            onRestore={handleRestoreVersion}
+          />
 
           {/* 削除 */}
           {onDelete && (

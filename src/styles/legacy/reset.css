@@ -1,17 +1,19 @@
 /* CSS Reset - from partner-prop.com */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
+/* ⚠️ すべてのスタイルは .site-layout 内にスコープ化 - adminには影響しない */
+
+.site-layout html, .site-layout body, .site-layout div, .site-layout span, .site-layout applet, .site-layout object, .site-layout iframe,
+.site-layout h1, .site-layout h2, .site-layout h3, .site-layout h4, .site-layout h5, .site-layout h6, .site-layout p, .site-layout blockquote, .site-layout pre,
+.site-layout a, .site-layout abbr, .site-layout acronym, .site-layout address, .site-layout big, .site-layout cite, .site-layout code,
+.site-layout del, .site-layout dfn, .site-layout em, .site-layout img, .site-layout ins, .site-layout kbd, .site-layout q, .site-layout s, .site-layout samp,
+.site-layout small, .site-layout strike, .site-layout strong, .site-layout sub, .site-layout sup, .site-layout tt, .site-layout var,
+.site-layout b, .site-layout u, .site-layout i, .site-layout center,
+.site-layout dl, .site-layout dt, .site-layout dd, .site-layout ol, .site-layout ul, .site-layout li,
+.site-layout fieldset, .site-layout form, .site-layout label, .site-layout legend,
+.site-layout table, .site-layout caption, .site-layout tbody, .site-layout tfoot, .site-layout thead, .site-layout tr, .site-layout th, .site-layout td,
+.site-layout article, .site-layout aside, .site-layout canvas, .site-layout details, .site-layout embed,
+.site-layout figure, .site-layout figcaption, .site-layout footer, .site-layout header, .site-layout hgroup,
+.site-layout menu, .site-layout nav, .site-layout output, .site-layout ruby, .site-layout section, .site-layout summary,
+.site-layout time, .site-layout mark, .site-layout audio, .site-layout video {
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -19,39 +21,38 @@ time, mark, audio, video {
 	font: inherit;
 	vertical-align: baseline;
 	text-decoration: none;
-	outline: none;
 }
 
 /* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
+.site-layout article, .site-layout aside, .site-layout details, .site-layout figcaption, .site-layout figure,
+.site-layout footer, .site-layout header, .site-layout hgroup, .site-layout menu, .site-layout nav, .site-layout section {
 	display: block;
 }
 
-body {
+.site-layout {
 	line-height: 1;
 }
 
-ol, ul {
+.site-layout ol, .site-layout ul {
 	list-style: none;
 }
 
-blockquote, q {
+.site-layout blockquote, .site-layout q {
 	quotes: none;
 }
 
-blockquote:before, blockquote:after,
-q:before, q:after {
+.site-layout blockquote:before, .site-layout blockquote:after,
+.site-layout q:before, .site-layout q:after {
 	content: '';
 	content: none;
 }
 
-table {
+.site-layout table {
 	border-collapse: collapse;
 	border-spacing: 0;
 }
 
-a {
+.site-layout a {
 	margin: 0;
 	padding: 0;
 	font-size: 100%;
@@ -59,12 +60,12 @@ a {
 	background: transparent;
 }
 
-input, textarea, select, button {
+.site-layout input, .site-layout textarea, .site-layout select, .site-layout button {
 	font-family: inherit;
 	font-size: inherit;
 }
 
-.styleReset {
+.site-layout .styleReset {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
@@ -72,12 +73,17 @@ input, textarea, select, button {
 	border: none;
 	border-radius: 0;
 	font: inherit;
-	outline: none;
 }
 
-.styleReset::-webkit-search-decoration,
-.styleReset::-webkit-search-cancel-button,
-.styleReset::-webkit-search-results-button,
-.styleReset::-webkit-search-results-decoration {
+/* アクセシビリティ: キーボードナビゲーション用フォーカス表示 */
+.site-layout *:focus-visible {
+	outline: 2px solid #3b82f6;
+	outline-offset: 2px;
+}
+
+.site-layout .styleReset::-webkit-search-decoration,
+.site-layout .styleReset::-webkit-search-cancel-button,
+.site-layout .styleReset::-webkit-search-results-button,
+.site-layout .styleReset::-webkit-search-results-decoration {
 	display: none;
 }

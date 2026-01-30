@@ -21,6 +21,8 @@ import {
   Table as TableIcon,
   Undo,
   Redo,
+  Sparkles,
+  Loader2,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -79,7 +81,9 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   const [linkUrl, setLinkUrl] = useState('')
   const [linkPopoverOpen, setLinkPopoverOpen] = useState(false)
   const [imageUrl, setImageUrl] = useState('')
+  const [imageAlt, setImageAlt] = useState('')
   const [imagePopoverOpen, setImagePopoverOpen] = useState(false)
+  const [isGeneratingAlt, setIsGeneratingAlt] = useState(false)
 
   const setLink = useCallback(() => {
     if (!editor) return
@@ -101,10 +105,35 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   const addImage = useCallback(() => {
     if (!editor || !imageUrl) return
 
-    editor.chain().focus().setImage({ src: imageUrl }).run()
+    editor.chain().focus().setImage({ src: imageUrl, alt: imageAlt || undefined }).run()
     setImageUrl('')
+    setImageAlt('')
     setImagePopoverOpen(false)
-  }, [editor, imageUrl])
+  }, [editor, imageUrl, imageAlt])
+
+  const generateAltText = useCallback(async () => {
+    if (!imageUrl) return
+
+    setIsGeneratingAlt(true)
+    try {
+      const response = await fetch('/api/ai/generate-alt-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_url: imageUrl }),
+      })
+
+      if (!response.ok) {
+        throw new Error('API request failed')
+      }
+
+      const data = await response.json()
+      setImageAlt(data.alt_text || '')
+    } catch (err) {
+      console.error('Alt text generation error:', err)
+    } finally {
+      setIsGeneratingAlt(false)
+    }
+  }, [imageUrl])
 
   const insertTable = useCallback(() => {
     if (!editor) return
@@ -323,15 +352,35 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
                 placeholder="https://..."
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    addImage()
-                  }
-                }}
               />
             </div>
-            <Button type="button" size="sm" onClick={addImage}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="image-alt">Alt Text</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={generateAltText}
+                  disabled={!imageUrl || isGeneratingAlt}
+                  className="h-6 px-2 text-xs text-purple-600 hover:text-purple-700"
+                >
+                  {isGeneratingAlt ? (
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-1 h-3 w-3" />
+                  )}
+                  AIで生成
+                </Button>
+              </div>
+              <Input
+                id="image-alt"
+                placeholder="画像の説明"
+                value={imageAlt}
+                onChange={(e) => setImageAlt(e.target.value)}
+              />
+            </div>
+            <Button type="button" size="sm" onClick={addImage} disabled={!imageUrl}>
               挿入
             </Button>
           </div>

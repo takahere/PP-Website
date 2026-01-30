@@ -1,10 +1,7 @@
-import Link from 'next/link'
-import { Plus } from 'lucide-react'
-
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Button } from '@/components/ui/button'
 import { PageList } from '@/components/admin/PageList'
+import { NewPageDialog } from '@/components/admin/NewPageDialog'
 
 // ページ一覧を取得
 async function getPages() {
@@ -38,16 +35,9 @@ export default async function AdminPagesPage() {
   return (
     <div className="space-y-6">
       {/* ページ一覧（フィルター + 新規作成ボタン） */}
-      <PageList 
+      <PageList
         pages={pages}
-        headerActions={
-          <Button asChild className="bg-red-600 hover:bg-red-700 text-white shrink-0">
-            <Link href="/admin/pages/new">
-              <Plus className="mr-2 h-4 w-4" />
-              新規ページ作成
-            </Link>
-          </Button>
-        }
+        headerActions={<NewPageDialog />}
       />
     </div>
   )

@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ListFilters, FilterConfig } from './ListFilters'
+import { useIsDesktop } from '@/hooks/useMediaQuery'
 
 interface Post {
   id: string
@@ -51,6 +52,7 @@ const typeLabels: Record<string, string> = {
 export function PostList({ posts, headerActions }: PostListProps) {
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<Record<string, string>>({})
+  const isDesktop = useIsDesktop()
 
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value)
@@ -166,81 +168,142 @@ export function PostList({ posts, headerActions }: PostListProps) {
         </div>
       </div>
 
-      {/* テーブル */}
-      <div className="rounded-lg border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[350px]">タイトル</TableHead>
-              <TableHead className="w-[100px]">タイプ</TableHead>
-              <TableHead className="w-[100px]">ステータス</TableHead>
-              <TableHead className="w-[100px]">公開日</TableHead>
-              <TableHead className="w-[100px]">更新日</TableHead>
-              <TableHead className="w-[80px] text-right">アクション</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPosts.length === 0 ? (
+      {/* テーブル/カード表示 */}
+      {isDesktop ? (
+        // デスクトップ: テーブル
+        <div className="rounded-lg border bg-white">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  {search || Object.keys(filters).length > 0
-                    ? '条件に一致する記事がありません'
-                    : '記事がありません'}
-                </TableCell>
+                <TableHead className="w-[350px]">タイトル</TableHead>
+                <TableHead className="w-[100px]">タイプ</TableHead>
+                <TableHead className="w-[100px]">ステータス</TableHead>
+                <TableHead className="w-[100px]">公開日</TableHead>
+                <TableHead className="w-[100px]">更新日</TableHead>
+                <TableHead className="w-[80px] text-right">アクション</TableHead>
               </TableRow>
-            ) : (
-              filteredPosts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell className="font-medium">
-                    {post.is_published ? (
-                      <Link
-                        href={post.type === 'news' ? `/news/${post.slug}` : `/seminar/${post.slug}`}
-                        className="hover:underline line-clamp-2"
-                        target="_blank"
-                      >
-                        {post.title}
-                      </Link>
-                    ) : (
-                      <Link
-                        href={`/admin/posts/${post.slug}/edit`}
-                        className="hover:underline line-clamp-2"
-                      >
-                        {post.title}
-                      </Link>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{typeLabels[post.type] || post.type}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {post.is_published ? (
-                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                        公開中
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">下書き</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                    {formatDate(post.published_at)}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                    {formatDate(post.updated_at)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/admin/posts/${post.slug}/edit`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">編集</span>
-                      </Link>
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {filteredPosts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    {search || Object.keys(filters).length > 0
+                      ? '条件に一致する記事がありません'
+                      : '記事がありません'}
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                filteredPosts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell className="font-medium">
+                      {post.is_published ? (
+                        <Link
+                          href={post.type === 'news' ? `/news/${post.slug}` : `/seminar/${post.slug}`}
+                          className="hover:underline line-clamp-2"
+                          target="_blank"
+                        >
+                          {post.title}
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/admin/posts/${post.slug}/edit`}
+                          className="hover:underline line-clamp-2"
+                        >
+                          {post.title}
+                        </Link>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{typeLabels[post.type] || post.type}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {post.is_published ? (
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                          公開中
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">下書き</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                      {formatDate(post.published_at)}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                      {formatDate(post.updated_at)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/admin/posts/${post.slug}/edit`}>
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">編集</span>
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        // モバイル: カードリスト
+        <div className="space-y-3">
+          {filteredPosts.length === 0 ? (
+            <div className="rounded-lg border bg-white p-8 text-center text-muted-foreground">
+              {search || Object.keys(filters).length > 0
+                ? '条件に一致する記事がありません'
+                : '記事がありません'}
+            </div>
+          ) : (
+            filteredPosts.map((post) => (
+              <div key={post.id} className="rounded-lg border bg-white p-4 space-y-3">
+                {/* タイトル */}
+                <div className="font-medium line-clamp-2">
+                  {post.is_published ? (
+                    <Link
+                      href={post.type === 'news' ? `/news/${post.slug}` : `/seminar/${post.slug}`}
+                      className="hover:underline"
+                      target="_blank"
+                    >
+                      {post.title}
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/admin/posts/${post.slug}/edit`}
+                      className="hover:underline"
+                    >
+                      {post.title}
+                    </Link>
+                  )}
+                </div>
+
+                {/* バッジ行 */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge variant="outline">{typeLabels[post.type] || post.type}</Badge>
+                  {post.is_published ? (
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                      公開中
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary">下書き</Badge>
+                  )}
+                </div>
+
+                {/* 日付 + アクション */}
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>公開: {formatDate(post.published_at)}</span>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/admin/posts/${post.slug}/edit`}>
+                      <Pencil className="h-4 w-4" />
+                      <span className="sr-only">編集</span>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   )
 }

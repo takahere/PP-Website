@@ -3,17 +3,8 @@ import { Users as UsersIcon } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin, getCurrentUserProfile } from '@/lib/auth/permissions'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { InviteUserDialog } from './invite-dialog'
-import { DeleteUserButton } from './delete-button'
-import { RoleSelector } from './role-selector'
+import { UserList } from '@/components/admin/UserList'
 
 async function getUsers() {
   const supabase = await createClient()
@@ -73,53 +64,8 @@ export default async function UsersPage() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-lg border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>メールアドレス</TableHead>
-              <TableHead>表示名</TableHead>
-              <TableHead>ロール</TableHead>
-              <TableHead>登録日</TableHead>
-              <TableHead className="text-right">アクション</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.email}</TableCell>
-                <TableCell>{user.display_name || '-'}</TableCell>
-                <TableCell>
-                  <RoleSelector
-                    userId={user.id}
-                    currentRole={user.role}
-                    disabled={user.id === currentUser?.id}
-                  />
-                </TableCell>
-                <TableCell>
-                  {new Date(user.created_at).toLocaleDateString('ja-JP')}
-                </TableCell>
-                <TableCell className="text-right">
-                  {user.id !== currentUser?.id && (
-                    <DeleteUserButton
-                      userId={user.id}
-                      email={user.email}
-                    />
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {users.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                  ユーザーがいません
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* ユーザーリスト */}
+      <UserList users={users} currentUserId={currentUser?.id || null} />
     </div>
   )
 }

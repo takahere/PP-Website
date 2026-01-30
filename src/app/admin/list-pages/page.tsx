@@ -1,5 +1,4 @@
-import Link from 'next/link'
-import { ExternalLink, FileText, Folder, Tag, BookOpen, Newspaper, Calendar, Users, Briefcase, GraduationCap } from 'lucide-react'
+import { ExternalLink, Folder, Tag, BookOpen, Newspaper, Calendar, Users, Briefcase, GraduationCap } from 'lucide-react'
 
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,18 +12,6 @@ interface ListPageItem {
   count: number
   icon: React.ComponentType<{ className?: string }>
   type: 'posts' | 'pages' | 'lab'
-}
-
-interface CategoryItem {
-  name: string
-  slug: string
-  count: number
-}
-
-interface TagItem {
-  name: string
-  slug: string
-  count: number
 }
 
 async function getListPageData() {
@@ -138,11 +125,6 @@ async function getListPageData() {
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count),
   }
-}
-
-function cleanCategoryName(name: string): string {
-  const parts = name.split(/[|｜│]/)
-  return parts[0]?.trim() || name
 }
 
 export default async function ListPagesPage() {

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Save, Trash2, Eye, Loader2 } from 'lucide-react'
+import { Save, Trash2, Eye, Loader2, Sparkles } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,6 +19,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ContentQualityCard } from './ContentQualityCard'
+import { VersionHistoryCard } from './VersionHistoryCard'
+import { SchedulePublishCard } from './SchedulePublishCard'
 
 export interface ContentData {
   id?: string
@@ -29,6 +32,7 @@ export interface ContentData {
   seo_description?: string | null
   og_description?: string | null
   is_published?: boolean
+  scheduled_at?: string | null
   type?: string
 }
 
@@ -55,6 +59,46 @@ export function ContentEditor({
   const [success, setSuccess] = useState(false)
 
   const [formData, setFormData] = useState<ContentData>(initialData)
+  const [isGeneratingMeta, setIsGeneratingMeta] = useState(false)
+
+  // AI でメタ情報を生成
+  const handleGenerateMeta = async () => {
+    if (!formData.title) {
+      setError('タイトルを入力してからAI生成を実行してください')
+      return
+    }
+
+    setIsGeneratingMeta(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/ai/generate-meta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          content_html: formData.content_html,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('API request failed')
+      }
+
+      const data = await response.json()
+
+      setFormData((prev) => ({
+        ...prev,
+        seo_description: data.seo_description || prev.seo_description,
+        og_description: data.og_description || prev.og_description,
+      }))
+    } catch (err) {
+      setError('AI生成に失敗しました。もう一度お試しください。')
+      console.error('Meta generation error:', err)
+    } finally {
+      setIsGeneratingMeta(false)
+    }
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -67,6 +111,12 @@ export function ContentEditor({
 
   const handleSwitchChange = (checked: boolean) => {
     setFormData((prev) => ({ ...prev, is_published: checked }))
+    setError(null)
+    setSuccess(false)
+  }
+
+  const handleScheduledAtChange = (scheduledAt: string | null) => {
+    setFormData((prev) => ({ ...prev, scheduled_at: scheduledAt }))
     setError(null)
     setSuccess(false)
   }
@@ -107,6 +157,26 @@ export function ContentEditor({
       setIsDeleting(false)
     }
     setDeleteDialogOpen(false)
+  }
+
+  // バージョン復元
+  const handleRestoreVersion = (data: {
+    title: string
+    content_html?: string
+    thumbnail?: string | null
+    seo_description?: string | null
+    og_description?: string | null
+  }) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: data.title,
+      content_html: data.content_html || prev.content_html,
+      thumbnail: data.thumbnail ?? prev.thumbnail,
+      seo_description: data.seo_description ?? prev.seo_description,
+      og_description: data.og_description ?? prev.og_description,
+    }))
+    setSuccess(false)
+    setError(null)
   }
 
   const typeLabels = {
@@ -249,10 +319,34 @@ export function ContentEditor({
             </Card>
           )}
 
+          {/* 公開予約 */}
+          {formData.is_published !== undefined && (
+            <SchedulePublishCard
+              scheduledAt={formData.scheduled_at}
+              isPublished={formData.is_published || false}
+              onChange={handleScheduledAtChange}
+            />
+          )}
+
           {/* SEO設定 */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle>SEO設定</CardTitle>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateMeta}
+                disabled={isGeneratingMeta}
+                className="text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                {isGeneratingMeta ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                AIで生成
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -265,6 +359,9 @@ export function ContentEditor({
                   placeholder="検索結果に表示される説明文"
                   className="min-h-[100px]"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {(formData.seo_description || '').length}/120文字
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -277,9 +374,27 @@ export function ContentEditor({
                   placeholder="SNSシェア時の説明文"
                   className="min-h-[100px]"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {(formData.og_description || '').length}/80文字
+                </p>
               </div>
             </CardContent>
           </Card>
+
+          {/* コンテンツ品質スコア */}
+          <ContentQualityCard
+            title={formData.title}
+            content_html={formData.content_html}
+            seo_description={formData.seo_description}
+            og_description={formData.og_description}
+          />
+
+          {/* バージョン履歴 */}
+          <VersionHistoryCard
+            contentType={contentType}
+            contentSlug={formData.slug}
+            onRestore={handleRestoreVersion}
+          />
 
           {/* 削除 */}
           {onDelete && (

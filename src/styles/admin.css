@@ -9,19 +9,22 @@
  * ======================================== */
 
 /* Admin全体のベースリセット */
+/* htmlのfont-sizeを大きくすることで、rem単位のTailwindクラスも拡大 */
 html:has(.admin-layout) {
-  font-size: 16px !important;
+  font-size: 20px !important;
 }
 
 body:has(.admin-layout) {
-  font-size: 14px !important;
-  line-height: 1.5 !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
   color: #374151 !important;
 }
 
 .admin-layout {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 1rem;
+  line-height: 1.6;
+  /* 混合フォント: 英数字はInter、日本語はNoto Sans JP */
+  font-family: var(--font-inter), var(--font-noto-sans-jp), ui-sans-serif, system-ui, sans-serif !important;
 }
 
 /* Tailwindのtext-*サイズクラスを有効にする */
@@ -318,4 +321,200 @@ body:has(.admin-layout) {
 .rich-text-editor .ProseMirror pre .hljs-built_in,
 .rich-text-editor .ProseMirror pre .hljs-deletion {
   color: #fb7185;
+}
+
+/* ========================================
+ * Admin Tab Styles
+ * ======================================== */
+
+[data-slot="tabs-list"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2rem !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  height: auto !important;
+  border-radius: 0 !important;
+}
+
+[data-slot="tabs-trigger"] {
+  position: relative !important;
+  padding: 0.5rem 0 !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  color: #9ca3af !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+  outline: none !important;
+}
+
+[data-slot="tabs-trigger"]:hover {
+  color: #6b7280 !important;
+}
+
+[data-slot="tabs-trigger"][data-state="active"] {
+  color: #111827 !important;
+  background: transparent !important;
+  border-bottom: 2px solid #111827 !important;
+  padding-bottom: calc(0.5rem - 2px) !important;
+}
+
+/* ========================================
+ * Admin Tooltip Styles
+ * Tooltipはポータル経由でレンダリングされるため
+ * グローバルスコープで定義
+ * ======================================== */
+
+[data-slot="tooltip-content"] {
+  background-color: #111827 !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-size: 0.875rem !important;
+  padding: 0.5rem 0.75rem !important;
+}
+
+[data-slot="tooltip-content"] p {
+  color: #ffffff !important;
+  margin: 0 !important;
+}
+
+/* Tooltip arrow */
+[data-slot="tooltip-content"] svg {
+  fill: #111827 !important;
+}
+
+/* ========================================
+ * Admin Responsive Layout
+ * 明示的なメディアクエリでレスポンシブ制御
+ * Tailwind v4 のレスポンシブクラスが動作しない問題を回避
+ * ======================================== */
+
+/* ----- デフォルト状態（デスクトップ） ----- */
+/* メディアクエリが効かない場合のフォールバック */
+
+.admin-layout .admin-desktop-only {
+  display: block;
+}
+
+.admin-layout .admin-mobile-only {
+  display: none;
+}
+
+.admin-layout .admin-hamburger {
+  display: none;
+}
+
+.admin-layout .admin-header-desktop {
+  display: block;
+}
+
+.admin-layout .admin-header-logo {
+  height: 20px;
+  width: auto;
+}
+
+/* ----- デスクトップ (768px以上) ----- */
+
+@media screen and (min-width: 768px) {
+  /* テーブルを表示、カードを非表示 */
+  .admin-layout .admin-desktop-only {
+    display: block !important;
+  }
+
+  .admin-layout .admin-mobile-only {
+    display: none !important;
+  }
+
+  /* ハンバーガーメニュー非表示 */
+  .admin-layout .admin-hamburger {
+    display: none !important;
+  }
+
+  /* 会社名・メール表示 */
+  .admin-layout .admin-header-desktop {
+    display: block !important;
+  }
+
+  /* ロゴサイズ（デスクトップ: 20px） */
+  .admin-layout .admin-header-logo {
+    height: 20px !important;
+    width: auto !important;
+  }
+}
+
+/* ----- モバイル (768px未満) ----- */
+
+@media screen and (max-width: 767px) {
+  /* テーブルを非表示、カードを表示 */
+  .admin-layout .admin-desktop-only {
+    display: none !important;
+  }
+
+  .admin-layout .admin-mobile-only {
+    display: block !important;
+  }
+
+  /* ハンバーガーメニュー表示 */
+  .admin-layout .admin-hamburger {
+    display: flex !important;
+  }
+
+  /* 会社名・メール非表示 */
+  .admin-layout .admin-header-desktop {
+    display: none !important;
+  }
+
+  /* ロゴサイズ（モバイル: 16px） */
+  .admin-layout .admin-header-logo {
+    height: 16px !important;
+    width: auto !important;
+  }
+}
+
+/* ========================================
+ * Mobile Responsive Styles
+ * モバイル対応（768px未満）
+ * ======================================== */
+
+@media (max-width: 767px) {
+  /* モバイルではフォントサイズを標準に */
+  html:has(.admin-layout) {
+    font-size: 16px !important;
+  }
+
+  /* カード内パディング調整 */
+  .admin-layout [data-slot="card"] {
+    padding: 1rem !important;
+  }
+
+  /* テーブルをスクロール可能に */
+  .admin-layout .table-wrapper,
+  .admin-layout [data-slot="table-wrapper"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* タブをスクロール可能に */
+  .admin-layout [data-slot="tabs-list"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+    gap: 1rem !important;
+  }
+
+  /* モバイルでのフォーム入力エリア */
+  .admin-layout input,
+  .admin-layout textarea,
+  .admin-layout select {
+    font-size: 16px !important; /* iOS zoom 防止 */
+  }
+
+  /* モバイルオーバーレイのトランジション */
+  .admin-layout .mobile-overlay {
+    transition: opacity 0.3s ease;
+  }
 }

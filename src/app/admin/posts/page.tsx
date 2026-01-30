@@ -1,9 +1,7 @@
-import Link from 'next/link'
-
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Button } from '@/components/ui/button'
 import { PostList } from '@/components/admin/PostList'
+import { NewPostDialog } from '@/components/admin/NewPostDialog'
 
 // 記事一覧を取得
 async function getPosts() {
@@ -37,16 +35,9 @@ export default async function AdminPostsPage() {
   return (
     <div className="space-y-6">
       {/* 記事一覧（フィルター + 新規作成ボタン） */}
-      <PostList 
+      <PostList
         posts={posts}
-        headerActions={
-          <Button asChild className="bg-red-600 hover:bg-red-700 text-white shrink-0">
-            <Link href="/admin/posts/new">
-              <span className="mr-2">+</span>
-              新規作成
-            </Link>
-          </Button>
-        }
+        headerActions={<NewPostDialog />}
       />
     </div>
   )

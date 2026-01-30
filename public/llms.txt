@@ -1,0 +1,26 @@
+# PartnerProp
+
+> パートナービジネスを科学し仕組みにするPRMツール
+
+## 概要
+PartnerPropは、パートナーマーケティング（代理店・アライアンス・紹介）を
+効率化するPRM（Partner Relationship Management）プラットフォームです。
+
+## 主な機能
+- パートナー管理: 代理店・アライアンスパートナーの一元管理
+- 案件トラッキング: 紹介案件の進捗管理
+- コミッション計算: 報酬の自動計算・レポート
+- パートナーポータル: パートナー向け専用画面
+
+## コンテンツ
+- Partner Lab (/lab): パートナービジネスのナレッジベース
+- 事例 (/casestudy): 導入企業の成功事例
+- セミナー (/seminar): ウェビナー・イベント情報
+
+## 会社情報
+- 会社名: 株式会社PartnerProp
+- 所在地: 東京都
+- URL: https://partner-prop.com
+
+## 問い合わせ
+- フォーム: https://partner-prop.com/#contact

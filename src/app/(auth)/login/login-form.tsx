@@ -92,17 +92,3 @@ export function LoginForm({ searchParams }: LoginFormProps) {
     </form>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

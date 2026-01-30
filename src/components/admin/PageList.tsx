@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ListFilters, FilterConfig } from './ListFilters'
+import { useIsDesktop } from '@/hooks/useMediaQuery'
 
 interface Page {
   id: string
@@ -68,6 +69,7 @@ function getPreviewUrl(slug: string, type: string): string {
 export function PageList({ pages, headerActions }: PageListProps) {
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<Record<string, string>>({})
+  const isDesktop = useIsDesktop()
 
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value)
@@ -186,97 +188,174 @@ export function PageList({ pages, headerActions }: PageListProps) {
         ))}
       </div>
 
-      {/* テーブル */}
-      <div className="rounded-lg border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[300px]">タイトル</TableHead>
-              <TableHead className="w-[100px]">タイプ</TableHead>
-              <TableHead className="w-[100px]">ステータス</TableHead>
-              <TableHead className="w-[100px]">公開日</TableHead>
-              <TableHead className="w-[100px]">更新日</TableHead>
-              <TableHead className="w-[100px] text-right">アクション</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPages.length === 0 ? (
+      {/* テーブル/カード表示 */}
+      {isDesktop ? (
+        // デスクトップ: テーブル
+        <div className="rounded-lg border bg-white">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  {search || Object.keys(filters).length > 0
-                    ? '条件に一致するページがありません'
-                    : 'ページがありません'}
-                </TableCell>
+                <TableHead className="w-[300px]">タイトル</TableHead>
+                <TableHead className="w-[100px]">タイプ</TableHead>
+                <TableHead className="w-[100px]">ステータス</TableHead>
+                <TableHead className="w-[100px]">公開日</TableHead>
+                <TableHead className="w-[100px]">更新日</TableHead>
+                <TableHead className="w-[100px] text-right">アクション</TableHead>
               </TableRow>
-            ) : (
-              filteredPages.map((page) => {
-                const typeInfo = typeLabels[page.type] || {
-                  label: page.type,
-                  color: 'bg-gray-100 text-gray-800',
-                }
-                return (
-                  <TableRow key={page.id}>
-                    <TableCell className="font-medium">
-                      {page.is_published ? (
-                        <Link
-                          href={getPreviewUrl(page.slug, page.type)}
-                          className="hover:underline line-clamp-2"
-                          target="_blank"
-                        >
-                          {page.title}
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`/admin/pages/${page.slug}/edit`}
-                          className="hover:underline line-clamp-2"
-                        >
-                          {page.title}
-                        </Link>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={`${typeInfo.color} hover:${typeInfo.color}`}>
-                        {typeInfo.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {page.is_published ? (
-                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                          公開中
+            </TableHeader>
+            <TableBody>
+              {filteredPages.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    {search || Object.keys(filters).length > 0
+                      ? '条件に一致するページがありません'
+                      : 'ページがありません'}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredPages.map((page) => {
+                  const typeInfo = typeLabels[page.type] || {
+                    label: page.type,
+                    color: 'bg-gray-100 text-gray-800',
+                  }
+                  return (
+                    <TableRow key={page.id}>
+                      <TableCell className="font-medium">
+                        {page.is_published ? (
+                          <Link
+                            href={getPreviewUrl(page.slug, page.type)}
+                            className="hover:underline line-clamp-2"
+                            target="_blank"
+                          >
+                            {page.title}
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/admin/pages/${page.slug}/edit`}
+                            className="hover:underline line-clamp-2"
+                          >
+                            {page.title}
+                          </Link>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={`${typeInfo.color} hover:${typeInfo.color}`}>
+                          {typeInfo.label}
                         </Badge>
-                      ) : (
-                        <Badge variant="secondary">下書き</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                      {formatDate(page.published_at)}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
-                      {formatDate(page.updated_at)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={getPreviewUrl(page.slug, page.type)} target="_blank">
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">プレビュー</span>
-                          </Link>
-                        </Button>
-                        <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/admin/pages/${page.slug}/edit`}>
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">編集</span>
-                          </Link>
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                      </TableCell>
+                      <TableCell>
+                        {page.is_published ? (
+                          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                            公開中
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary">下書き</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                        {formatDate(page.published_at)}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                        {formatDate(page.updated_at)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" asChild>
+                            <Link href={getPreviewUrl(page.slug, page.type)} target="_blank">
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">プレビュー</span>
+                            </Link>
+                          </Button>
+                          <Button variant="ghost" size="icon" asChild>
+                            <Link href={`/admin/pages/${page.slug}/edit`}>
+                              <Pencil className="h-4 w-4" />
+                              <span className="sr-only">編集</span>
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        // モバイル: カードリスト
+        <div className="space-y-3">
+          {filteredPages.length === 0 ? (
+            <div className="rounded-lg border bg-white p-8 text-center text-muted-foreground">
+              {search || Object.keys(filters).length > 0
+                ? '条件に一致するページがありません'
+                : 'ページがありません'}
+            </div>
+          ) : (
+            filteredPages.map((page) => {
+              const typeInfo = typeLabels[page.type] || {
+                label: page.type,
+                color: 'bg-gray-100 text-gray-800',
+              }
+              return (
+                <div key={page.id} className="rounded-lg border bg-white p-4 space-y-3">
+                  {/* タイトル */}
+                  <div className="font-medium line-clamp-2">
+                    {page.is_published ? (
+                      <Link
+                        href={getPreviewUrl(page.slug, page.type)}
+                        className="hover:underline"
+                        target="_blank"
+                      >
+                        {page.title}
+                      </Link>
+                    ) : (
+                      <Link
+                        href={`/admin/pages/${page.slug}/edit`}
+                        className="hover:underline"
+                      >
+                        {page.title}
+                      </Link>
+                    )}
+                  </div>
+
+                  {/* バッジ行 */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={`${typeInfo.color} hover:${typeInfo.color}`}>
+                      {typeInfo.label}
+                    </Badge>
+                    {page.is_published ? (
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                        公開中
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary">下書き</Badge>
+                    )}
+                  </div>
+
+                  {/* 日付 + アクション */}
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>公開: {formatDate(page.published_at)}</span>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" asChild>
+                        <Link href={getPreviewUrl(page.slug, page.type)} target="_blank">
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only">プレビュー</span>
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" size="icon" asChild>
+                        <Link href={`/admin/pages/${page.slug}/edit`}>
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">編集</span>
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+      )}
     </div>
   )
 }

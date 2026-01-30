@@ -5,7 +5,7 @@ const footerLinks = {
   resources: {
     title: 'お役立ち資料',
     links: [
-      { name: 'パートナーマーケティングとは？', href: '/knowledge/partner-marketing' },
+      { name: 'パートナーマーケティングとは？', href: '/partner-marketing' },
       { name: 'お役立ち資料', href: '/knowledge' },
       { name: 'アライアンスWEBメディア', href: '/lab' },
       { name: 'セミナー一覧', href: '/seminar' },
@@ -15,14 +15,14 @@ const footerLinks = {
     title: '会社情報',
     links: [
       { name: '会社概要', href: '/company' },
-      { name: 'ブランドサイト', href: 'https://corp.partner-prop.com', external: true },
-      { name: 'お問い合わせ', href: '/knowledge/demo' },
+      { name: 'ブランドサイト', href: '/brandsite' },
+      { name: 'お問い合わせ', href: '/lab/inquiry' },
     ],
   },
   careers: {
     title: '採用情報',
     links: [
-      { name: '採用サイト', href: 'https://recruit.partner-prop.com', external: true },
+      { name: '採用サイト', href: '/recruitment' },
     ],
   },
   legal: {
@@ -56,9 +56,9 @@ export function Footer() {
         <nav className="footer-nav">
           {Object.entries(footerLinks).map(([key, section]) => (
             <div key={key} className="footer-nav__col">
-              <h3 className="footer-nav__heading">
+              <p className="footer-nav__heading">
                 {section.title}
-              </h3>
+              </p>
               <ul className="footer-nav__list">
                 {section.links.map((link) => (
                   <li key={link.name} className="footer-nav__menu">

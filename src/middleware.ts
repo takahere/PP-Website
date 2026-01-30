@@ -12,11 +12,23 @@ const protectedRoutes = ['/admin', '/dashboard']
 // Protected API routes that require authentication (return 401 instead of redirect)
 const protectedApiRoutes = ['/api/analytics', '/api/ai-writer', '/api/canvas']
 
-// Paths to exclude from redirect checks
-const excludeFromRedirect = ['/admin', '/api', '/auth', '/_next', '/favicon.ico']
+// Paths to exclude from ALL middleware processing (fastest path)
+// Public site pages don't need middleware processing
+const skipMiddlewarePaths = ['/_next', '/favicon.ico']
+
+// Paths to exclude from redirect checks only
+const excludeFromRedirect = ['/admin', '/api', '/auth']
+
+// Timeout for Supabase operations (ms)
+const SUPABASE_TIMEOUT = 3000
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Fast path: Skip all processing for certain paths
+  if (skipMiddlewarePaths.some((path) => pathname.startsWith(path))) {
+    return NextResponse.next()
+  }
 
   // Basic auth for staging environment (when STAGING_PASSWORD is set)
   if (STAGING_PASSWORD) {
@@ -45,21 +57,6 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Skip redirect check for excluded paths and static files
-  const shouldCheckRedirect = !excludeFromRedirect.some((path) =>
-    pathname.startsWith(path)
-  )
-
-  // Check for 301 redirects from database
-  if (shouldCheckRedirect) {
-    const redirect = await checkRedirect(request, pathname)
-    if (redirect) {
-      return NextResponse.redirect(new URL(redirect.to_path, request.url), {
-        status: redirect.is_permanent ? 301 : 302,
-      })
-    }
-  }
-
   // Check if the route is protected
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
@@ -70,25 +67,54 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   )
 
-  // Update session and get user
-  const { user, supabaseResponse } = await updateSession(request)
+  // Only run Supabase operations for protected routes
+  if (isProtectedRoute || isProtectedApiRoute) {
+    // Update session and get user
+    const { user, supabaseResponse } = await updateSession(request)
 
-  // If accessing protected API route without authentication, return 401
-  if (isProtectedApiRoute && !user) {
-    return NextResponse.json(
-      { error: 'Unauthorized', message: 'Authentication required' },
-      { status: 401 }
-    )
+    // If accessing protected API route without authentication, return 401
+    if (isProtectedApiRoute && !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Authentication required' },
+        { status: 401 }
+      )
+    }
+
+    // If accessing protected route without authentication, redirect to login
+    if (isProtectedRoute && !user) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirect', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    return supabaseResponse
   }
 
-  // If accessing protected route without authentication, redirect to login
-  if (isProtectedRoute && !user) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
+  // Skip redirect check for excluded paths
+  const shouldCheckRedirect = !excludeFromRedirect.some((path) =>
+    pathname.startsWith(path)
+  )
+
+  // Check for 301 redirects from database (only for public pages)
+  // Use timeout to prevent hanging if Supabase is slow
+  if (shouldCheckRedirect) {
+    try {
+      const redirect = await Promise.race([
+        checkRedirect(request, pathname),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), SUPABASE_TIMEOUT))
+      ])
+      if (redirect) {
+        return NextResponse.redirect(new URL(redirect.to_path, request.url), {
+          status: redirect.is_permanent ? 301 : 302,
+        })
+      }
+    } catch {
+      // If redirect check fails, continue without redirect
+      console.warn('[Middleware] Redirect check failed, continuing without redirect')
+    }
   }
 
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 // Check redirects table in Supabase

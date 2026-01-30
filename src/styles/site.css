@@ -3,6 +3,31 @@
  * Admin には適用されない
  * ======================================== */
 
+/* ========================================
+ * Apple風タイポグラフィ最適化
+ * ======================================== */
+.site-layout {
+  /* 英文/和文のバランス調整 */
+  letter-spacing: 0.02em;
+  line-height: 1.75;
+
+  /* Apple風のフォントスムージング */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* カーニングとリガチャの有効化 */
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* タイトル専用（Apple風の詰めた行間） */
+.site-layout h1,
+.site-layout h2,
+.site-layout h3 {
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
 /* Member Page Styles */
 .member-grid {
   display: grid;
@@ -194,6 +219,26 @@ article#companyLogo li.item img {
 .react-section .text-3xl { font-size: 30px !important; }
 .react-section .text-4xl { font-size: 36px !important; }
 .react-section .text-5xl { font-size: 48px !important; }
+.react-section .text-6xl { font-size: 60px !important; }
+.react-section .text-7xl { font-size: 72px !important; }
+.react-section .text-\[2\.5rem\] { font-size: 2.5rem !important; }
+
+/* React section 内の Tailwind font-weight を復元（reset.cssのfont: inherit対策） */
+.react-section .font-normal { font-weight: 400 !important; }
+.react-section .font-medium { font-weight: 500 !important; }
+.react-section .font-semibold { font-weight: 600 !important; }
+.react-section .font-bold { font-weight: 700 !important; }
+
+/* React section 内の Tailwind line-height を復元 */
+.react-section .leading-tight { line-height: 1.25 !important; }
+.react-section .leading-snug { line-height: 1.375 !important; }
+.react-section .leading-normal { line-height: 1.5 !important; }
+.react-section .leading-relaxed { line-height: 1.625 !important; }
+
+/* React section 内の Tailwind letter-spacing を復元 */
+.react-section .tracking-tight { letter-spacing: -0.025em !important; }
+.react-section .tracking-normal { letter-spacing: 0 !important; }
+.react-section .tracking-wide { letter-spacing: 0.025em !important; }
 
 /* ========================================
  * HeroSection Responsive Layout Fix
@@ -385,3 +430,120 @@ article#companyLogo li.item img {
 .parts.parts04.current { animation-delay: 1.3s; }
 .parts.parts05.current { animation-delay: 1.4s; }
 .parts.parts06.current { animation-delay: 1.6s; }
+
+/* ========================================
+ * Footer Styles (Override for Tailwind compatibility)
+ * ======================================== */
+.site-layout .site-footer {
+  display: flex !important;
+  padding: calc(48 / 375 * 100vw) calc(32 / 375 * 100vw) !important;
+  background: #fff !important;
+}
+
+@media screen and (min-width: 769px) {
+  .site-layout .site-footer {
+    justify-content: center !important;
+    padding: min(calc(80 / 1440 * 100vw), 80px) !important;
+  }
+}
+
+.site-layout .site-footer__content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: calc(48 / 375 * 100vw) !important;
+}
+
+@media screen and (min-width: 769px) {
+  .site-layout .site-footer__content {
+    flex-direction: row !important;
+    gap: min(calc(200 / 1440 * 100vw), 200px) !important;
+    width: 100% !important;
+    max-width: 1280px !important;
+  }
+}
+
+.site-layout .footer-logo {
+  width: calc(173 / 375 * 100vw) !important;
+}
+
+@media screen and (min-width: 769px) {
+  .site-layout .footer-logo {
+    flex-shrink: 0 !important;
+    width: min(calc(173 / 1440 * 100vw), 173px) !important;
+  }
+}
+
+.site-layout .footer-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: calc(40 / 375 * 100vw) !important;
+}
+
+@media screen and (min-width: 769px) {
+  .site-layout .footer-nav {
+    flex-direction: row !important;
+    gap: min(calc(80 / 1440 * 100vw), 80px) !important;
+  }
+}
+
+.site-layout .footer-nav__col {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: calc(16 / 375 * 100vw) !important;
+}
+
+@media screen and (min-width: 769px) {
+  .site-layout .footer-nav__col {
+    gap: min(calc(24 / 1440 * 100vw), 24px) !important;
+  }
+}
+
+.site-layout .footer-nav__heading {
+  font-size: calc(14 / 375 * 100vw) !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: #333 !important;
+}
+
+@media screen and (min-width: 769px) {
+  .site-layout .footer-nav__heading {
+    font-size: min(calc(14 / 1440 * 100vw), 14px) !important;
+  }
+}
+
+.site-layout .footer-nav__list {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: calc(12 / 375 * 100vw) !important;
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+@media screen and (min-width: 769px) {
+  .site-layout .footer-nav__list {
+    gap: min(calc(16 / 1440 * 100vw), 16px) !important;
+  }
+}
+
+.site-layout .footer-nav__menu {
+  line-height: 1 !important;
+}
+
+.site-layout .footer-nav__link {
+  color: #666 !important;
+  font-size: calc(12 / 375 * 100vw) !important;
+  font-weight: 400 !important;
+  text-decoration: none !important;
+}
+
+@media screen and (min-width: 769px) {
+  .site-layout .footer-nav__link {
+    font-size: min(calc(12 / 1440 * 100vw), 12px) !important;
+  }
+}
+
+.site-layout .footer-nav__link:hover {
+  opacity: 0.7 !important;
+}

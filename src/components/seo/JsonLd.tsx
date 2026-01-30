@@ -264,6 +264,46 @@ export function EventJsonLd({
   )
 }
 
+interface WebSiteJsonLdProps {
+  name?: string
+  url?: string
+  description?: string
+  potentialAction?: {
+    target: string
+    queryInput: string
+  }
+}
+
+export function WebSiteJsonLd({
+  name = 'PartnerProp',
+  url = BASE_URL,
+  description = 'パートナービジネスを科学し仕組みにするPRMツール',
+  potentialAction,
+}: WebSiteJsonLdProps) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name,
+    url,
+    description,
+    inLanguage: 'ja',
+    ...(potentialAction && {
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: potentialAction.target,
+        'query-input': potentialAction.queryInput,
+      },
+    }),
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  )
+}
+
 
 
 

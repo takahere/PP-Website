@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Noto_Sans_JP } from 'next/font/google'
+import { Inter, Noto_Sans_JP } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 
@@ -9,10 +9,20 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || ''
 // HubSpot Portal ID
 const HUBSPOT_PORTAL_ID = process.env.NEXT_PUBLIC_HUBSPOT_PORTAL_ID || ''
 
+const inter = Inter({
+  variable: '--font-inter',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  preload: true,
+})
+
 const notoSansJP = Noto_Sans_JP({
   variable: '--font-noto-sans-jp',
   subsets: ['latin'],
-  weight: ['400', '500', '700', '900'],
+  weight: ['400', '500', '700'],
+  display: 'swap',
+  preload: true,
 })
 
 export const metadata: Metadata = {
@@ -23,7 +33,10 @@ export const metadata: Metadata = {
   },
   description: 'パートナービジネスを科学し仕組みにするPRMツール「PartnerProp」',
   alternates: {
-    canonical: './',
+    canonical: 'https://partner-prop.com',
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
   },
   icons: {
     icon: [
@@ -46,7 +59,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['/og-image.jpg'],
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'PartnerProp - パートナーマーケティングを実現するPRM',
+      },
+    ],
   },
   robots: {
     index: true,
@@ -69,6 +89,14 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
+        {/* Preconnect hints for external resources */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://js.hs-scripts.com" />
+        <link rel="dns-prefetch" href="https://forms.hsforms.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
         {/* Google Tag Manager */}
         <Script
           id="gtm-script"
@@ -90,7 +118,7 @@ export default function RootLayout({
           src={`//js.hs-scripts.com/${HUBSPOT_PORTAL_ID}.js`}
         />
       </head>
-      <body className={`${notoSansJP.variable} font-sans text-text-main antialiased`}>
+      <body className={`${inter.variable} ${notoSansJP.variable} font-sans text-text-main antialiased`}>
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe

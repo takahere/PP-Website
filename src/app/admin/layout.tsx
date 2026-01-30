@@ -5,8 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 
 // Admin専用スタイル（Legacyリセット + Tiptapエディタ + サイドバー）
 import '@/styles/admin.css'
-import { AdminSidebar } from './admin-sidebar'
-import { LogoutButton } from './logout-button'
+import { AdminLayoutClient } from './admin-layout-client'
 import { UserRole } from '@/lib/types/user'
 
 export const metadata: Metadata = {
@@ -42,13 +41,11 @@ export default async function AdminLayout({
   const userRole: UserRole = (profile?.role as UserRole) || 'regular'
 
   return (
-    <div className="admin-layout flex h-screen overflow-hidden">
-      <AdminSidebar userEmail={user.email || ''} userRole={userRole}>
-        <LogoutButton />
-      </AdminSidebar>
-      <main className="flex-1 overflow-auto">
-        <div className="p-8 bg-gray-100 min-h-full">{children}</div>
-      </main>
-    </div>
+    <AdminLayoutClient
+      userEmail={user.email || ''}
+      userRole={userRole}
+    >
+      {children}
+    </AdminLayoutClient>
   )
 }

@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ListFilters, FilterConfig, filterItems } from './ListFilters'
+import { useIsDesktop } from '@/hooks/useMediaQuery'
 
 interface LabArticle {
   id: string
@@ -73,6 +74,7 @@ const contentTypeColors: Record<string, string> = {
 export function LabArticleList({ articles, categories, headerActions }: LabArticleListProps) {
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState<Record<string, string>>({})
+  const isDesktop = useIsDesktop()
 
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value)
@@ -211,8 +213,9 @@ export function LabArticleList({ articles, categories, headerActions }: LabArtic
         </div>
       </div>
 
-      {/* テーブル */}
-      <div className="rounded-lg border bg-white overflow-x-auto">
+      {/* デスクトップ: テーブル / モバイル: カードリスト */}
+      {isDesktop ? (
+        <div className="rounded-lg border bg-white overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -304,6 +307,78 @@ export function LabArticleList({ articles, categories, headerActions }: LabArtic
           </TableBody>
         </Table>
       </div>
+      ) : (
+      <div className="space-y-3">
+        {filteredArticles.length === 0 ? (
+          <div className="rounded-lg border bg-white p-8 text-center text-muted-foreground">
+            {search || Object.keys(filters).length > 0
+              ? '条件に一致する記事がありません'
+              : '記事がありません'}
+          </div>
+        ) : (
+          filteredArticles.map((article) => (
+            <div key={article.id} className="rounded-lg border bg-white p-4 space-y-3">
+              {/* タイトル */}
+              <div className="font-medium line-clamp-2">{article.title}</div>
+
+              {/* タイプ + ステータスバッジ */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {article.content_type && (
+                  <Badge
+                    variant="secondary"
+                    className={`text-xs ${contentTypeColors[article.content_type] || ''}`}
+                  >
+                    {contentTypeLabels[article.content_type] || article.content_type}
+                  </Badge>
+                )}
+                {article.is_published ? (
+                  <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                    公開中
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary">下書き</Badge>
+                )}
+              </div>
+
+              {/* カテゴリ */}
+              {article.categories && article.categories.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {Array.from(new Set(article.categories)).slice(0, 2).map((cat: string, index: number) => (
+                    <Badge key={`${article.id}-cat-${index}`} variant="outline" className="text-xs">
+                      {cat}
+                    </Badge>
+                  ))}
+                  {Array.from(new Set(article.categories)).length > 2 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{Array.from(new Set(article.categories)).length - 2}
+                    </Badge>
+                  )}
+                </div>
+              )}
+
+              {/* 日付 + アクション */}
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>公開: {formatDate(article.published_at)}</span>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href={buildLabArticleUrl(article.slug)} target="_blank">
+                      <Eye className="h-4 w-4" />
+                      <span className="sr-only">プレビュー</span>
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/admin/lab/${article.slug}/edit`}>
+                      <Pencil className="h-4 w-4" />
+                      <span className="sr-only">編集</span>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      )}
     </div>
   )
 }

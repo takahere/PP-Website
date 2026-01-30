@@ -1,19 +1,17 @@
 /* Legacy WordPress CSS - common.css */
 /* Original source: https://partner-prop.com/css/common.css */
 /* Loaded AFTER Tailwind to override base reset */
+/* ⚠️ すべてのスタイルは .site-layout 内にスコープ化 - adminには影響しない */
 
 /* ========================================
- * グローバル設定: Tailwind標準(16px)を維持
- * レガシーコンテンツは .legacy-content でスコープ化
+ * .site-layout 用グローバル設定
+ * Adminには適用されない
  * ======================================== */
-html {
+.site-layout {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
-}
-
-body {
   color: #333333;
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: var(--font-sans);
   background-color: #ffffff;
   -webkit-text-size-adjust: 100%;
   word-wrap: break-word;
@@ -22,8 +20,8 @@ body {
   backface-visibility: hidden;
 }
 
-body.lock,
-body.loading {
+.site-layout.lock,
+.site-layout.loading {
   overflow: hidden;
   width: 100vw;
   height: 100vh;
@@ -33,66 +31,69 @@ body.loading {
  * .legacy-content: WordPress HTML用スコープ
  * 旧サイトのrem計算ベース（モバイル: vw計算, PC: 8px/10px）
  * ======================================== */
-.legacy-content {
+.site-layout .legacy-content {
   font-size: calc(10vw / 3.75);
   color: #333333;
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.75;
 }
 
 @media screen and (min-width: 769px) {
-  .legacy-content {
+  .site-layout .legacy-content {
     font-size: 8px;
     line-height: 1.79;
   }
 }
 
 @media screen and (min-width: 960px) {
-  .legacy-content {
+  .site-layout .legacy-content {
     font-size: 10px;
   }
 }
 
-* {
+.site-layout * {
   -webkit-tap-highlight-color: transparent;
 }
 
-a {
+.site-layout a {
   color: inherit;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
-p, dt, dd, li {
+.site-layout p,
+.site-layout dt,
+.site-layout dd,
+.site-layout li {
   word-break: break-word;
   word-wrap: normal;
 }
 
-img {
+.site-layout img {
   max-width: 100%;
   height: auto;
   vertical-align: top;
 }
 
-figure img {
+.site-layout figure img {
   width: 100%;
   height: auto;
 }
 
-picture img {
+.site-layout picture img {
   width: 100%;
   height: auto;
 }
 
-video {
+.site-layout video {
   width: 100%;
   height: auto;
 }
 
-label {
+.site-layout label {
   cursor: pointer;
 }
 
-::placeholder {
+.site-layout ::placeholder {
   color: #333333;
 }
 
