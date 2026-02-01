@@ -19,6 +19,9 @@ import {
   ChevronRight,
   Users,
   X,
+  Settings,
+  Target,
+  AlertTriangle,
 } from 'lucide-react'
 
 import { UserRole } from '@/lib/types/user'
@@ -51,6 +54,15 @@ const navigation: NavItem[] = [
   { name: '一覧ページ', href: '/admin/list-pages', icon: List },
   { name: 'リダイレクト', href: '/admin/redirects', icon: ExternalLink },
   { name: 'ユーザー管理', href: '/admin/users', icon: Users },
+  {
+    name: '設定',
+    href: '/admin/settings',
+    icon: Settings,
+    children: [
+      { name: '広告設定', href: '/admin/settings/ads', icon: Target },
+      { name: '閾値設定', href: '/admin/settings/thresholds', icon: AlertTriangle },
+    ],
+  },
 ]
 
 interface AdminSidebarProps {
@@ -119,9 +131,9 @@ export function AdminSidebar({
           <ul className="space-y-1">
             {visibleNavigation.map((item) => {
               const isActive = pathname === item.href ||
-                (item.href !== '/admin/lab' && pathname.startsWith(item.href))
-              const isLabSection = item.href === '/admin/lab'
-              const isLabActive = isLabSection && pathname.startsWith('/admin/lab')
+                (item.href !== '/admin/lab' && item.href !== '/admin/settings' && pathname.startsWith(item.href))
+              const hasChildren = item.children && item.children.length > 0
+              const isChildrenActive = hasChildren && pathname.startsWith(item.href)
 
               // モバイルでは折りたたみ状態を無視（常に展開表示）
               const showText = isMobileOpen || !isCollapsed
@@ -133,8 +145,8 @@ export function AdminSidebar({
                     onClick={handleLinkClick}
                     className={cn(
                       'sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                      isLabSection
-                        ? isLabActive
+                      hasChildren
+                        ? isChildrenActive
                           ? 'bg-gray-900 active'
                           : 'hover:bg-gray-100'
                         : isActive
@@ -148,11 +160,11 @@ export function AdminSidebar({
                     {showText && (
                       <>
                         <span className="flex-1">{item.name}</span>
-                        {item.children && item.children.length > 0 && (
+                        {hasChildren && (
                           <ChevronDown
                             className={cn(
                               'h-4 w-4 transition-transform',
-                              isLabActive ? 'rotate-180' : ''
+                              isChildrenActive ? 'rotate-180' : ''
                             )}
                           />
                         )}
@@ -161,7 +173,7 @@ export function AdminSidebar({
                   </Link>
 
                   {/* サブアイテム */}
-                  {item.children && isLabActive && showText && (
+                  {hasChildren && isChildrenActive && showText && item.children && (
                     <ul className="mt-1 ml-4 space-y-1">
                       {item.children.map((child) => {
                         const isChildActive = pathname === child.href

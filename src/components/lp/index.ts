@@ -1,3 +1,62 @@
+// レジストリシステムを初期化（セクションを登録）
+import './core/registerSections'
+
+// ========================================
+// コアシステム（新アーキテクチャ）
+// ========================================
+
+// 型定義
+export type {
+  SectionDefinition,
+  SectionComponentProps,
+  SectionEditorProps,
+  VariantOption,
+  LPSection,
+  LPSectionType,
+} from './core/types'
+
+// レジストリAPI
+export {
+  sectionRegistry,
+  registerSection,
+  getSection,
+  getAllSections,
+  getAllSectionTypes,
+} from './core/registry'
+
+// 新レンダラー・エディタ
+export { SectionRenderer } from './core/SectionRenderer'
+export { SectionEditorWrapper } from './core/SectionEditorWrapper'
+
+// ========================================
+// セクション定義（新しいディレクトリ構造）
+// ========================================
+
+// Hero
+export { heroDefinition } from './sections/hero'
+export type { HeroContent } from './sections/hero'
+
+// Features
+export { featuresDefinition } from './sections/features'
+export type { FeaturesContent, FeatureItem } from './sections/features'
+
+// Benefits
+export { benefitsDefinition } from './sections/benefits'
+export type { BenefitsContent, BenefitItem } from './sections/benefits'
+
+// CTA
+export { ctaDefinition } from './sections/cta'
+export type { CTAContent } from './sections/cta'
+
+// Form
+export { formDefinition } from './sections/form'
+export type { FormContent, FormField } from './sections/form'
+
+// ========================================
+// 後方互換性のためのエイリアス
+// ========================================
+
+// 旧コンポーネントのエクスポート（後方互換性）
 export { HeroSection } from './HeroSection'
 export { HeroSectionNew } from './HeroSectionNew'
 export { ITReviewSection } from './ITReviewSection'
@@ -20,70 +79,34 @@ export { KnowledgeSectionCarousel } from './KnowledgeSectionCarousel'
 export { CTASection } from './CTASection'
 export { Benefits } from './Benefits'
 export { ContactForm } from './ContactForm'
-export { FeaturesGrid, type FeatureItem } from './FeaturesGrid'
-export { SectionRenderer } from './SectionRenderer'
+export { FeaturesGrid } from './FeaturesGrid'
 
-// Re-export types from individual components
-export type { BenefitItem } from './Benefits'
-export type { FormField } from './ContactForm'
+// 後方互換性のためのラベル・説明・デフォルトコンテンツ
+// これらはレジストリから動的に取得されるようになりましたが、
+// 既存のコードとの互換性のために残しています
+import { sectionRegistry } from './core/registry'
+import type { LPSectionType as LPSectionTypeAlias } from './core/types'
 
-// LP Section types
-export type LPSectionType = 'hero' | 'features' | 'benefits' | 'cta' | 'form'
+/**
+ * @deprecated sectionRegistry.getLabelMap() を使用してください
+ */
+export const sectionTypeLabels = sectionRegistry.getLabelMap() as Record<
+  LPSectionTypeAlias,
+  string
+>
 
-export interface LPSection {
-  id: string
-  type: LPSectionType
-  order: number
-  content: Record<string, unknown>
-  variant?: string
-}
+/**
+ * @deprecated sectionRegistry.getDescriptionMap() を使用してください
+ */
+export const sectionTypeDescriptions = sectionRegistry.getDescriptionMap() as Record<
+  LPSectionTypeAlias,
+  string
+>
 
-// Section configuration
-export const sectionTypeLabels: Record<LPSectionType, string> = {
-  hero: 'ヒーロー',
-  features: '機能紹介',
-  benefits: 'メリット',
-  cta: 'CTA',
-  form: 'フォーム',
-}
-
-export const sectionTypeDescriptions: Record<LPSectionType, string> = {
-  hero: 'ページの最上部に表示される大きなキャッチコピーエリア',
-  features: '製品・サービスの機能を紹介するグリッド',
-  benefits: '導入メリットを紹介するセクション',
-  cta: '行動を促すコールトゥアクションエリア',
-  form: 'お問い合わせフォーム',
-}
-
-export const defaultSectionContent: Record<LPSectionType, Record<string, unknown>> = {
-  hero: {
-    headline: '見出しテキスト',
-    subheadline: 'サブテキスト',
-    cta_text: '詳しく見る',
-    cta_link: '/contact',
-    background_image: '',
-  },
-  features: {
-    title: '機能紹介',
-    subtitle: '主な機能をご紹介します',
-    items: [],
-    columns: 3,
-  },
-  benefits: {
-    title: '導入メリット',
-    subtitle: '',
-    items: [],
-  },
-  cta: {
-    headline: 'お問い合わせはこちら',
-    description: '',
-    button_text: 'お問い合わせ',
-    button_link: '/contact',
-  },
-  form: {
-    title: 'お問い合わせ',
-    description: '',
-    fields: [],
-    submit_text: '送信する',
-  },
-}
+/**
+ * @deprecated sectionRegistry.getDefaultContentMap() を使用してください
+ */
+export const defaultSectionContent = sectionRegistry.getDefaultContentMap() as Record<
+  LPSectionTypeAlias,
+  Record<string, unknown>
+>

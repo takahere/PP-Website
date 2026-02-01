@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { SectionRenderer } from '@/components/lp/SectionRenderer'
 import { ContentHtmlWithForms } from '@/components/ContentHtmlRenderer'
+import { AdTracker } from '@/components/AdTracker'
+import { getAdConfig } from '@/lib/ads/server'
 import type { LPSection } from '@/components/lp'
 
 interface Props {
@@ -113,18 +115,28 @@ export default async function StaticPage({ params }: Props) {
     notFound()
   }
 
+  // 広告設定を取得
+  const adConfig = await getAdConfig(page.id)
+
   // sectionsがある場合はセクションベースで描画
   const sections = page.sections as LPSection[] | null
   const hasSections = sections && Array.isArray(sections) && sections.length > 0
 
   if (hasSections) {
-    return <SectionRenderer sections={sections} />
+    return (
+      <>
+        <AdTracker pageId={page.id} config={adConfig} />
+        <SectionRenderer sections={sections} />
+      </>
+    )
   }
 
   // HTMLコンテンツで描画
   return (
-    <article className="min-h-screen bg-white">
-      {/* ヘッダー */}
+    <>
+      <AdTracker pageId={page.id} config={adConfig} />
+      <article className="min-h-screen bg-white">
+        {/* ヘッダー */}
       <header className="bg-gradient-to-r from-gray-900 to-gray-800 py-16 px-4">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-3xl font-bold text-white md:text-4xl">
@@ -160,7 +172,8 @@ export default async function StaticPage({ params }: Props) {
           className="prose prose-lg max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h3:text-xl prose-a:text-[var(--pp-coral)] prose-img:rounded-lg"
         />
       </div>
-    </article>
+      </article>
+    </>
   )
 }
 

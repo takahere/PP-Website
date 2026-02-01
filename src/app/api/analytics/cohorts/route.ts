@@ -509,3 +509,4 @@ function generateDemoData(weeks: number): CohortAnalysisData {
     recommendations,
   }
 }
+

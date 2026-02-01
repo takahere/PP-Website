@@ -55,13 +55,14 @@ import {
 } from '@/components/ui/tabs'
 import { RichTextEditor } from './RichTextEditor'
 import { SectionEditor } from './SectionEditor'
+import { AdSettingsCard } from './AdSettingsCard'
 import {
   type LPSection,
   type LPSectionType,
-  sectionTypeLabels,
-  sectionTypeDescriptions,
-  defaultSectionContent,
+  sectionRegistry,
+  getAllSections,
 } from '@/components/lp'
+import type { AdConfig } from '@/lib/ads/types'
 
 export interface PageEditorData {
   id: string
@@ -97,6 +98,7 @@ export function PageEditor({
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [adConfig, setAdConfig] = useState<AdConfig | null>(null)
 
   // 編集モード: 'html' または 'sections'
   const hasSections = initialData.sections && initialData.sections.length > 0
@@ -127,7 +129,7 @@ export function PageEditor({
       id: crypto.randomUUID(),
       type,
       variant: 'default',
-      content: { ...defaultSectionContent[type] },
+      content: sectionRegistry.getDefaultContent(type),
       order: (formData.sections || []).length,
     }
 
@@ -216,6 +218,22 @@ export function PageEditor({
     startTransition(async () => {
       const result = await onSave(saveData)
       if (result.success) {
+        // 広告設定も保存
+        if (adConfig) {
+          try {
+            await fetch('/api/ads/config/page', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                pageId: formData.id,
+                config: adConfig,
+                isEnabled: true,
+              }),
+            })
+          } catch (err) {
+            console.error('Failed to save ad config:', err)
+          }
+        }
         setSuccess(true)
         router.refresh()
       } else {
@@ -372,26 +390,24 @@ export function PageEditor({
                           </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4 md:grid-cols-2">
-                          {(Object.keys(sectionTypeLabels) as LPSectionType[]).map(
-                            (type) => (
-                              <Card
-                                key={type}
-                                className="cursor-pointer hover:border-[var(--pp-coral)] transition-colors"
-                                onClick={() => handleAddSection(type)}
-                              >
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="text-base">
-                                    {sectionTypeLabels[type]}
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <CardDescription className="text-xs">
-                                    {sectionTypeDescriptions[type]}
-                                  </CardDescription>
-                                </CardContent>
-                              </Card>
-                            )
-                          )}
+                          {getAllSections().map((definition) => (
+                            <Card
+                              key={definition.type}
+                              className="cursor-pointer hover:border-[var(--pp-coral)] transition-colors"
+                              onClick={() => handleAddSection(definition.type as LPSectionType)}
+                            >
+                              <CardHeader className="pb-2">
+                                <CardTitle className="text-base">
+                                  {definition.label}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <CardDescription className="text-xs">
+                                  {definition.description}
+                                </CardDescription>
+                              </CardContent>
+                            </Card>
+                          ))}
                         </div>
                       </DialogContent>
                     </Dialog>
@@ -445,7 +461,7 @@ export function PageEditor({
 
                             <div className="flex-1">
                               <div className="font-medium">
-                                {sectionTypeLabels[section.type]}
+                                {sectionRegistry.getLabel(section.type)}
                               </div>
                               <div className="text-sm text-muted-foreground truncate">
                                 {section.type === 'hero' &&
@@ -476,7 +492,7 @@ export function PageEditor({
                                 <SheetContent className="w-[500px] sm:max-w-[500px] overflow-y-auto">
                                   <SheetHeader>
                                     <SheetTitle>
-                                      {sectionTypeLabels[section.type]}を編集
+                                      {sectionRegistry.getLabel(section.type)}を編集
                                     </SheetTitle>
                                     <SheetDescription>
                                       セクションの内容を編集します
@@ -581,6 +597,12 @@ export function PageEditor({
               </div>
             </CardContent>
           </Card>
+
+          {/* 広告設定 */}
+          <AdSettingsCard
+            pageId={formData.id}
+            onChange={setAdConfig}
+          />
 
           {/* 削除 */}
           {onDelete && (

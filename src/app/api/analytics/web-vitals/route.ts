@@ -550,3 +550,4 @@ function generateDemoData(days: number): WebVitalsData {
     recommendations: generateRecommendations(avgLCP, avgFID, avgCLS, avgTTFB),
   }
 }
+

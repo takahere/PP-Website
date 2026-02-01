@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { ContentHtmlWithForms } from '@/components/ContentHtmlRenderer'
+import { AdTracker } from '@/components/AdTracker'
+import { getAdConfig } from '@/lib/ads/server'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -78,8 +80,12 @@ export default async function CasestudyDetailPage({ params }: Props) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://partner-prop.com'
   const pageUrl = `${baseUrl}/casestudy/${slug}`
 
+  // 広告設定を取得
+  const adConfig = await getAdConfig(casestudy.id)
+
   return (
     <>
+      <AdTracker pageId={casestudy.id} config={adConfig} />
       <ArticleJsonLd
         title={casestudy.title}
         description={casestudy.seo_description || casestudy.og_description}

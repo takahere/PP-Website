@@ -5,6 +5,8 @@ import Link from 'next/link'
 
 import { createClient } from '@/lib/supabase/server'
 import { ContentHtmlWithForms } from '@/components/ContentHtmlRenderer'
+import { AdTracker } from '@/components/AdTracker'
+import { getAdConfig } from '@/lib/ads/server'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -69,13 +71,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function KnowledgeDetailPage({ params }: Props) {
   const { slug } = await params
   const knowledge = await getKnowledge(slug)
-  
+
   if (!knowledge) {
     notFound()
   }
-  
+
+  // 広告設定を取得
+  const adConfig = await getAdConfig(knowledge.id)
+
   return (
-    <article className="min-h-screen bg-white">
+    <>
+      <AdTracker pageId={knowledge.id} config={adConfig} />
+      <article className="min-h-screen bg-white">
       {/* ヘッダー部分 */}
       <header className="bg-gradient-to-b from-amber-50 to-white py-12 md:py-16">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -176,6 +183,7 @@ export default async function KnowledgeDetailPage({ params }: Props) {
         </div>
       </footer>
     </article>
+    </>
   )
 }
 

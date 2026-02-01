@@ -8,6 +8,8 @@ import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { TableOfContents } from '@/components/article/TableOfContents'
 import { addHeadingIds, extractHeadings } from '@/lib/heading-utils'
 import { ContentHtmlWithForms } from '@/components/ContentHtmlRenderer'
+import { AdTracker } from '@/components/AdTracker'
+import { getAdConfig } from '@/lib/ads/server'
 
 interface Props {
   params: Promise<{ category: string; slug?: string[] }>
@@ -204,8 +206,12 @@ export default async function LabArticlePage({ params }: Props) {
   // 目次用の見出しを抽出
   const tocItems = extractHeadings(contentWithIds)
 
+  // 広告設定を取得
+  const adConfig = await getAdConfig(article.id)
+
   return (
     <>
+      <AdTracker pageId={article.id} config={adConfig} />
       <ArticleJsonLd
         title={article.title}
         description={article.seo_description || article.og_description}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useCompletion } from '@ai-sdk/react'
 import {
   Sparkles,
@@ -12,6 +12,9 @@ import {
   Copy,
   Wand2,
   FileText,
+  AlertCircle,
+  TrendingUp,
+  Award,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -34,6 +37,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface OutlineItem {
   level: 'h2' | 'h3'
@@ -53,22 +57,40 @@ interface LinkSuggestion {
   articleTitle: string
   reason: string
   insertAfter?: string
+  seoScore?: number
+  rank?: string
+}
+
+// SEOスコア関連の型
+interface SEOScoreSummary {
+  totalArticles: number
+  rankDistribution: { S: number; A: number; B: number; C: number }
+  avgScore: number
+}
+
+interface SuccessPattern {
+  avgH2Count: number
+  avgWordCount: number
+  commonH2Patterns: string[]
 }
 
 interface AIWriterPanelProps {
   onInsertContent: (content: string) => void
   onApplyOutline: (outline: GeneratedOutline) => void
   currentContent?: string
+  category?: string
 }
 
 export function AIWriterPanel({
   onInsertContent,
   onApplyOutline,
   currentContent = '',
+  category,
 }: AIWriterPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const [keyword, setKeyword] = useState('')
+  const [useEnhanced, setUseEnhanced] = useState(true)
 
   // Hydration mismatch を防ぐ
   useEffect(() => {
@@ -81,6 +103,58 @@ export function AIWriterPanel({
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
   const [generatedSections, setGeneratedSections] = useState<Record<string, string>>({})
+  const [error, setError] = useState<string | null>(null)
+
+  // SEOスコア関連の状態
+  const [seoSummary, setSeoSummary] = useState<SEOScoreSummary | null>(null)
+  const [successPattern, setSuccessPattern] = useState<SuccessPattern | null>(null)
+  const [isLoadingSEO, setIsLoadingSEO] = useState(false)
+
+  // activeSectionのrefを保持（onFinishコールバック用）
+  const activeSectionRef = useRef<string | null>(null)
+
+  // activeSectionが変更されたらrefも更新
+  useEffect(() => {
+    activeSectionRef.current = activeSection
+  }, [activeSection])
+
+  // SEOデータを取得
+  const loadSEOData = useCallback(async () => {
+    setIsLoadingSEO(true)
+    try {
+      const [scoresRes, patternsRes] = await Promise.all([
+        fetch('/api/seo/article-scores?limit=10'),
+        fetch(`/api/seo/success-patterns?${category ? `category=${category}&` : ''}keyword=${encodeURIComponent(keyword || '')}`),
+      ])
+
+      if (scoresRes.ok) {
+        const scoresData = await scoresRes.json()
+        setSeoSummary(scoresData.summary)
+      }
+
+      if (patternsRes.ok) {
+        const patternsData = await patternsRes.json()
+        if (patternsData.patterns?.basic) {
+          setSuccessPattern({
+            avgH2Count: patternsData.patterns.basic.avgH2Count || 5,
+            avgWordCount: patternsData.patterns.basic.avgWordCount || 3500,
+            commonH2Patterns: patternsData.patterns.basic.commonH2Patterns || [],
+          })
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load SEO data:', err)
+    } finally {
+      setIsLoadingSEO(false)
+    }
+  }, [category, keyword])
+
+  // パネルが開いたらSEOデータを取得
+  useEffect(() => {
+    if (isOpen) {
+      loadSEOData()
+    }
+  }, [isOpen, loadSEOData])
 
   // セクション執筆用のuseCompletion
   const {
@@ -90,12 +164,17 @@ export function AIWriterPanel({
   } = useCompletion({
     api: '/api/ai-writer/section',
     onFinish: (prompt, completion) => {
-      if (activeSection) {
+      // refを参照してクロージャ問題を回避
+      const currentSection = activeSectionRef.current
+      if (currentSection) {
         setGeneratedSections((prev) => ({
           ...prev,
-          [activeSection]: completion,
+          [currentSection]: completion,
         }))
       }
+    },
+    onError: (err) => {
+      setError(err.message || 'セクション生成に失敗しました')
     },
   })
 
@@ -106,12 +185,13 @@ export function AIWriterPanel({
     setIsGeneratingOutline(true)
     setGeneratedOutline(null)
     setGeneratedSections({})
+    setError(null)
 
     try {
       const response = await fetch('/api/ai-writer/outline', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keyword }),
+        body: JSON.stringify({ keyword, useEnhanced, category }),
       })
 
       if (!response.ok) {
@@ -136,12 +216,13 @@ export function AIWriterPanel({
         const outline = JSON.parse(jsonMatch[0])
         setGeneratedOutline(outline)
       }
-    } catch (error) {
-      console.error('Outline generation failed:', error)
+    } catch (err) {
+      console.error('Outline generation failed:', err)
+      setError(err instanceof Error ? err.message : '構成生成に失敗しました')
     } finally {
       setIsGeneratingOutline(false)
     }
-  }, [keyword])
+  }, [keyword, useEnhanced, category])
 
   // セクションを執筆
   const handleWriteSection = useCallback(
@@ -154,10 +235,12 @@ export function AIWriterPanel({
           heading,
           context: generatedOutline?.title || '',
           previousContent: currentContent,
+          useEnhanced,
+          category,
         },
       })
     },
-    [writeSection, generatedOutline, currentContent]
+    [writeSection, generatedOutline, currentContent, useEnhanced, category]
   )
 
   // 内部リンクを提案
@@ -166,22 +249,29 @@ export function AIWriterPanel({
 
     setIsLoadingLinks(true)
     setLinkSuggestions([])
+    setError(null)
 
     try {
       const response = await fetch('/api/ai-writer/links', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: currentContent }),
+        body: JSON.stringify({ content: currentContent, useEnhanced }),
       })
 
       const data = await response.json()
       setLinkSuggestions(data.suggestions || [])
-    } catch (error) {
-      console.error('Link suggestion failed:', error)
+      if (data.error) {
+        setError(data.error)
+      } else if (data.warning) {
+        setError(data.warning)
+      }
+    } catch (err) {
+      console.error('Link suggestion failed:', err)
+      setError(err instanceof Error ? err.message : 'リンク提案に失敗しました')
     } finally {
       setIsLoadingLinks(false)
     }
-  }, [currentContent])
+  }, [currentContent, useEnhanced])
 
   // コンテンツをクリップボードにコピー
   const copyToClipboard = useCallback((text: string, index: number) => {
@@ -237,12 +327,91 @@ export function AIWriterPanel({
 
         <ScrollArea className="h-[calc(100vh-120px)] pr-4 mt-6">
           <div className="space-y-6">
+            {/* エラー表示 */}
+            {error && (
+              <Card className="border-destructive">
+                <CardContent className="pt-4">
+                  <p className="text-sm text-destructive flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {error}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setError(null)}
+                    className="mt-2"
+                  >
+                    閉じる
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* SEOスコアサマリー */}
+            {isLoadingSEO && (
+              <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                <CardContent className="flex items-center justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-purple-600 mr-2" />
+                  <span className="text-sm text-muted-foreground">SEOデータを読み込み中...</span>
+                </CardContent>
+              </Card>
+            )}
+            {!isLoadingSEO && seoSummary && (
+              <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-purple-600" />
+                    SEOスコア分析
+                    <Badge variant="outline" className="ml-auto text-xs">
+                      {seoSummary.totalArticles}記事
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">平均スコア</span>
+                    <span className="font-bold text-lg">{seoSummary.avgScore}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge className="bg-amber-500 hover:bg-amber-600">
+                            <Award className="h-3 w-3 mr-1" />
+                            S: {seoSummary.rankDistribution.S}
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>スコア85+</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <Badge variant="secondary">A: {seoSummary.rankDistribution.A}</Badge>
+                    <Badge variant="outline">B: {seoSummary.rankDistribution.B}</Badge>
+                    <Badge variant="outline" className="text-muted-foreground">C: {seoSummary.rankDistribution.C}</Badge>
+                  </div>
+                  {successPattern && (
+                    <div className="text-xs text-muted-foreground pt-2 border-t">
+                      <p>成功記事の平均: H2 {successPattern.avgH2Count}個 / {successPattern.avgWordCount}文字</p>
+                      {successPattern.commonH2Patterns.length > 0 && (
+                        <p className="mt-1">よく使われるパターン: {successPattern.commonH2Patterns.slice(0, 3).join('、')}</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Step 1: キーワード入力 */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Step 1: 構成案を生成
+                  {useEnhanced && (
+                    <Badge variant="secondary" className="ml-auto text-xs bg-purple-100 text-purple-700">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      SEO強化版
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -260,6 +429,33 @@ export function AIWriterPanel({
                     }}
                   />
                 </div>
+
+                {/* 強化版モード切替 */}
+                <div className="flex items-center justify-between py-2 px-3 bg-muted/50 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="useEnhanced"
+                      checked={useEnhanced}
+                      onChange={(e) => setUseEnhanced(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <Label htmlFor="useEnhanced" className="text-sm cursor-pointer">
+                      成功パターンを学習して生成
+                    </Label>
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[200px]">
+                        GSC/GA4データからS/Aランク記事の構成・文体を学習します
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+
                 <Button
                   onClick={generateOutline}
                   disabled={isGeneratingOutline || !keyword.trim()}
@@ -436,7 +632,18 @@ export function AIWriterPanel({
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
-                            <p className="font-medium text-primary">{link.anchorText}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-primary">{link.anchorText}</p>
+                              {link.rank && (
+                                <Badge
+                                  variant={link.rank === 'S' ? 'default' : link.rank === 'A' ? 'secondary' : 'outline'}
+                                  className={`text-xs ${link.rank === 'S' ? 'bg-amber-500 hover:bg-amber-600' : ''}`}
+                                >
+                                  {link.rank}
+                                  {link.seoScore && `: ${link.seoScore}`}
+                                </Badge>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground mt-1">
                               → {link.articleTitle}
                             </p>

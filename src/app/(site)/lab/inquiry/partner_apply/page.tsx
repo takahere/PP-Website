@@ -1,6 +1,9 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { HubSpotForm } from '@/components/HubSpotForm'
+import { InquiryFormWithTracking } from '@/components/InquiryFormWithTracking'
+import { getAdConfig } from '@/lib/ads/server'
+
+const PAGE_ID = 'lab_inquiry_partner_apply'
 
 export const metadata: Metadata = {
   title: 'パートナー申請 | PartnerLab',
@@ -11,7 +14,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default function PartnerApplyPage() {
+export default async function PartnerApplyPage() {
+  const adConfig = await getAdConfig(PAGE_ID)
+
   return (
     <div className="min-h-screen bg-[var(--pp-bg-light)]">
       {/* ヘッダー */}
@@ -76,8 +81,10 @@ export default function PartnerApplyPage() {
             </p>
           </div>
 
-          {/* HubSpotフォーム */}
-          <HubSpotForm
+          {/* HubSpotフォーム with 広告追跡 */}
+          <InquiryFormWithTracking
+            pageId={PAGE_ID}
+            adConfig={adConfig}
             portalId="7315668"
             formId="partner-apply"
             className="hubspot-form-container"

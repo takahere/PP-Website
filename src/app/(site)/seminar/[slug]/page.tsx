@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { EventJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { ContentHtmlWithForms } from '@/components/ContentHtmlRenderer'
+import { AdTracker } from '@/components/AdTracker'
+import { getAdConfig } from '@/lib/ads/server'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -91,8 +93,12 @@ export default async function SeminarDetailPage({ params }: Props) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://partner-prop.com'
   const pageUrl = `${baseUrl}/seminar/${slug}`
 
+  // 広告設定を取得
+  const adConfig = await getAdConfig(seminar.id)
+
   return (
     <>
+      <AdTracker pageId={seminar.id} config={adConfig} />
       <EventJsonLd
         name={seminar.title}
         description={seminar.seo_description || seminar.og_description}

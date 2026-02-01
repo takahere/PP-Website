@@ -7,6 +7,7 @@ interface HubSpotFormProps {
   formId: string
   region?: string
   className?: string
+  onFormSubmit?: () => void
 }
 
 declare global {
@@ -18,6 +19,7 @@ declare global {
           portalId: string
           formId: string
           target: string
+          onFormSubmit?: () => void
         }) => void
       }
     }
@@ -29,9 +31,16 @@ export function HubSpotForm({
   formId,
   region = 'na1',
   className = '',
+  onFormSubmit,
 }: HubSpotFormProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const formCreated = useRef(false)
+  const onFormSubmitRef = useRef(onFormSubmit)
+
+  // コールバックの最新値を保持
+  useEffect(() => {
+    onFormSubmitRef.current = onFormSubmit
+  }, [onFormSubmit])
 
   useEffect(() => {
     // 既にフォームが作成されている場合はスキップ
@@ -47,6 +56,7 @@ export function HubSpotForm({
           portalId,
           formId,
           target: `#hubspot-form-${formId}`,
+          onFormSubmit: () => onFormSubmitRef.current?.(),
         })
         formCreated.current = true
       }
