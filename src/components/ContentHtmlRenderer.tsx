@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useRef } from 'react'
-import DOMPurify from 'dompurify'
+import DOMPurify from 'isomorphic-dompurify'
 import {
   HubSpotForm,
   extractHubSpotForms,
@@ -11,11 +11,10 @@ import {
 
 /**
  * HTMLをサニタイズする
- * クライアントサイドでのみ実行される
+ * isomorphic-dompurify を使用してサーバー/クライアント両方で同じ結果を返す
  * WordPress コンテンツで使用される要素（iframe, lite-youtube等）を許可
  */
 function sanitizeHtml(html: string): string {
-  if (typeof window === 'undefined') return html
   return DOMPurify.sanitize(html, {
     ADD_TAGS: ['iframe', 'lite-youtube'],
     ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling', 'videoid', 'playlabel'],

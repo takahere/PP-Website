@@ -26,3 +26,6 @@ WHERE table_name = 'pages' AND column_name = 'sections';
 
 
 
+
+
+

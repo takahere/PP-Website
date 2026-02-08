@@ -37,3 +37,6 @@ WHERE table_name = 'lab_articles' AND column_name = 'content_type';
 
 
 
+
+
+
